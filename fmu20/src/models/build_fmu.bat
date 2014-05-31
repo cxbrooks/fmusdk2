@@ -1,4 +1,4 @@
-@echo off 
+#echo off
 rem ------------------------------------------------------------
 rem This batch builds an FMU of the FMU SDK
 rem Usage: build_fmu (me|cs) <fmu_dir_name> (-win64)

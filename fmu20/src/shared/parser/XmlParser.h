@@ -16,7 +16,7 @@
 
 #include <libxml/xmlreader.h>
 
-#if WINDOWS
+#ifdef _MSC_VER
 #pragma comment(lib, "libxml2.lib")
 #pragma comment(lib, "wsock32.lib")
 #endif
