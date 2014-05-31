@@ -16,13 +16,14 @@
 #if WINDOWS
 #ifdef _WIN64
 #define DLL_DIR   "binaries\\win64\\"
-#define DLL_SUFFIX ".dll"
 #define DLL_DIR2   "binaries\\win64\\"
 #else
 #define DLL_DIR   "binaries\\win32\\"
-#define DLL_SUFFIX2 ".dll"
 #define DLL_DIR2   "binaries\\win32\\"
 #endif
+
+#define DLL_SUFFIX ".dll"
+#define DLL_SUFFIX2 ".dll"
 
 #else
 #if __APPLE__
