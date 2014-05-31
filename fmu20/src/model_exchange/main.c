@@ -27,6 +27,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h> //strerror()
 #include "fmi.h"
 #include "sim_support.h"
 
@@ -98,7 +99,7 @@ static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char 
         z    =  (double *) calloc(nz, sizeof(double));
         prez =  (double *) calloc(nz, sizeof(double));
     }
-    if (!x || !xdot || nz>0 && (!z || !prez)) return error("out of memory");
+    if ((!x || !xdot || nz>0) && (!z || !prez)) return error("out of memory");
 
     // open result file
     if (!(file = fopen(RESULT_FILE, "w"))) {

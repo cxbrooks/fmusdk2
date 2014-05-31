@@ -17,6 +17,7 @@
 
 
 #ifdef STANDALONE_XML_PARSER
+// ## is special to gcc, see http://gcc.gnu.org/onlinedocs/cpp/Variadic-Macros.html
 #define logThis(n, ...) printf(__VA_ARGS__);printf("\n")
 #else
 
@@ -239,7 +240,7 @@ ModelDescription *XmlParser::validate(ModelDescription *md) {
             continue;
         }
         if (!(*it)->typeSpec) {
-            logThis(ERROR_ERROR, "Scalar variable %s miss type specification in modelDescription.xml",
+            logThis(ERROR_ERROR, "Scalar variable %s miss type specification in modelDescription.xml %s",
                 varName, XmlParser::attNames[XmlParser::att_valueReference]);
             errors++;
             continue;

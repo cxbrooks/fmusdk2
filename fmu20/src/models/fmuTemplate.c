@@ -44,6 +44,7 @@ fmiValueReference vrStates[NUMBER_OF_STATES] = STATES;
 // Private helpers used below to validate function arguments
 // ---------------------------------------------------------------------------
 
+#ifndef FMI_COSIMULATION
 static fmiBoolean invalidNumber(ModelInstance *comp, const char *f, const char *arg, int n, int nExpected) {
     if (n != nExpected) {
         comp->state = modelError;
@@ -52,6 +53,7 @@ static fmiBoolean invalidNumber(ModelInstance *comp, const char *f, const char *
     }
     return fmiFalse;
 }
+#endif
 
 static fmiBoolean invalidState(ModelInstance *comp, const char *f, int statesExpected) {
     if (!comp)
@@ -160,9 +162,9 @@ fmiComponent fmiInstantiate(fmiString instanceName, fmiType fmuType, fmiString f
             "fmiInstantiate: Out of memory.");
         return NULL;
     }
-    strcpy(comp->instanceName, instanceName);
+    strcpy((char *)comp->instanceName, (char *)instanceName);
     comp->type = fmuType;
-    strcpy(comp->GUID, fmuGUID);
+    strcpy((char *)comp->GUID, (char *)fmuGUID);
     comp->functions = functions;
     comp->componentEnvironment = functions->componentEnvironment;
     comp->loggingOn = loggingOn;
@@ -243,13 +245,13 @@ void fmiFreeInstance(fmiComponent c) {
     if (comp->s) {
         int i;
         for (i = 0; i < NUMBER_OF_STRINGS; i++){
-            if (comp->s[i]) comp->functions->freeMemory(comp->s[i]);
+            if (comp->s[i]) comp->functions->freeMemory((void *)comp->s[i]);
         }
         comp->functions->freeMemory(comp->s);
     }
     if (comp->isPositive) comp->functions->freeMemory(comp->isPositive);
-    if (comp->instanceName) comp->functions->freeMemory(comp->instanceName);
-    if (comp->GUID) comp->functions->freeMemory(comp->GUID);
+    if (comp->instanceName) comp->functions->freeMemory((void *)comp->instanceName);
+    if (comp->GUID) comp->functions->freeMemory((void *)comp->GUID);
     comp->functions->freeMemory(comp);
 }
 
@@ -300,7 +302,9 @@ fmiStatus fmiSetDebugLogging(fmiComponent c, fmiBoolean loggingOn, size_t nCateg
 }
 
 fmiStatus fmiGetReal (fmiComponent c, const fmiValueReference vr[], size_t nvr, fmiReal value[]) {
+#if NUMBER_OF_REALS > 0
     int i;
+#endif
     ModelInstance *comp = (ModelInstance *)c;
     if (invalidState(comp, "fmiGetReal", modelInitializationMode|modelInitialized|modelStepping|modelError))
         return fmiError;
@@ -435,7 +439,7 @@ fmiStatus fmiSetBoolean(fmiComponent c, const fmiValueReference vr[], size_t nvr
 }
 
 fmiStatus fmiSetString (fmiComponent c, const fmiValueReference vr[], size_t nvr, const fmiString value[]) {
-    int i, n;
+    int i;
     ModelInstance *comp = (ModelInstance *)c;
     if (invalidState(comp, "fmiSetString", modelInstantiated|modelInitializationMode|modelInitialized|modelStepping))
         return fmiError;
@@ -446,7 +450,7 @@ fmiStatus fmiSetString (fmiComponent c, const fmiValueReference vr[], size_t nvr
     FILTERED_LOG(comp, fmiOK, LOG_FMI_CALL, "fmiSetString: nvr = %d", nvr)
 
     for (i = 0; i < nvr; i++) {
-        char *string = comp->s[vr[i]];
+        char *string = (char *)comp->s[vr[i]];
         if (vrOutOfRange(comp, "fmiSetString", vr[i], NUMBER_OF_STRINGS))
             return fmiError;
         FILTERED_LOG(comp, fmiOK, LOG_FMI_CALL, "fmiSetString: #s%d# = '%s'", vr[i], value[i])
@@ -462,7 +466,7 @@ fmiStatus fmiSetString (fmiComponent c, const fmiValueReference vr[], size_t nvr
                 return fmiError;
             }
         }
-        strcpy(comp->s[vr[i]], value[i]);
+        strcpy((char *)comp->s[vr[i]], (char *)value[i]);
     }
     return fmiOK;
 }
@@ -543,12 +547,18 @@ fmiStatus fmiDoStep(fmiComponent c, fmiReal currentCommunicationPoint,
                     fmiReal communicationStepSize, fmiBoolean noSetFMUStatePriorToCurrentPoint) {
     ModelInstance *comp = (ModelInstance *)c;
     double h = communicationStepSize / 10;
-    int k,i;
+    int k;
+#if NUMBER_OF_EVENT_INDICATORS>0 || NUMBER_OF_REALS>0 
+    int i;
+#endif
     const int n = 10; // how many Euler steps to perform for one do step
+#if NUMBER_OF_REALS>0 
     double prevState[max(NUMBER_OF_STATES, 1)];
+#endif
+#if NUMBER_OF_EVENT_INDICATORS>0
     double prevEventIndicators[max(NUMBER_OF_EVENT_INDICATORS, 1)];
     int stateEvent = 0;
-
+#endif
     if (invalidState(comp, "fmiDoStep", modelInitialized|modelStepping))
         return fmiError;
 
@@ -759,7 +769,9 @@ fmiStatus fmiSetTime(fmiComponent c, fmiReal time) {
 
 fmiStatus fmiSetContinuousStates(fmiComponent c, const fmiReal x[], size_t nx){
     ModelInstance *comp = (ModelInstance *)c;
+#if NUMBER_OF_REALS>0
     int i;
+#endif
     if (invalidState(comp, "fmiSetContinuousStates", modelStepping))
         return fmiError;
     if (invalidNumber(comp, "fmiSetContinuousStates", "nx", nx, NUMBER_OF_STATES))
@@ -779,7 +791,9 @@ fmiStatus fmiSetContinuousStates(fmiComponent c, const fmiReal x[], size_t nx){
 
 /* Evaluation of the model equations */
 fmiStatus fmiGetDerivatives(fmiComponent c, fmiReal derivatives[], size_t nx) {
+#if NUMBER_OF_STATES>0
     int i;
+#endif
     ModelInstance* comp = (ModelInstance *)c;
     if (invalidState(comp, "fmiGetDerivatives", modelInitialized|modelStepping|modelTerminated))
         return fmiError;
@@ -798,7 +812,9 @@ fmiStatus fmiGetDerivatives(fmiComponent c, fmiReal derivatives[], size_t nx) {
 }
 
 fmiStatus fmiGetEventIndicators(fmiComponent c, fmiReal eventIndicators[], size_t ni) {
+#if NUMBER_OF_EVENT_INDICATORS>0
     int i;
+#endif
     ModelInstance *comp = (ModelInstance *)c;
     if (invalidState(comp, "fmiGetEventIndicators", modelInitialized|modelStepping|modelTerminated))
         return fmiError;
@@ -814,7 +830,9 @@ fmiStatus fmiGetEventIndicators(fmiComponent c, fmiReal eventIndicators[], size_
 }
 
 fmiStatus fmiGetContinuousStates(fmiComponent c, fmiReal states[], size_t nx) {
+#if NUMBER_OF_REALS>0
     int i;
+#endif
     ModelInstance *comp = (ModelInstance *)c;
     if (invalidState(comp, "fmiGetContinuousStates", modelInitialized|modelStepping|modelTerminated))
         return fmiError;

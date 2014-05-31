@@ -36,7 +36,7 @@ FMU fmu; // the fmu to simulate
 
 // simulate the given FMU from tStart = 0 to tEnd.
 static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char separator,
-                    int nCategories, char **categories) {
+        int nCategories, char ** categories) {
     double time;
     double tStart = 0;                       // start time
     const char *guid;                       // global unique id of the fmu
@@ -70,7 +70,7 @@ static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char 
     if (!c) return error("could not instantiate model");
 
     if (nCategories > 0) {
-        fmiFlag = fmu->setDebugLogging(c, fmiTrue, nCategories, categories);
+        fmiFlag = fmu->setDebugLogging(c, fmiTrue, nCategories, (const fmiString*) categories);
         if (fmiFlag > fmiWarning) {
             return error("could not initialize model; failed FMI set debug logging");
         }

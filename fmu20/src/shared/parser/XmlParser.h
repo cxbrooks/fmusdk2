@@ -16,8 +16,10 @@
 
 #include <libxml/xmlreader.h>
 
+#if WINDOWS
 #pragma comment(lib, "libxml2.lib")
 #pragma comment(lib, "wsock32.lib")
+#endif
 
 // same as in FMI 2.0 specification
 typedef unsigned int fmiValueReference;

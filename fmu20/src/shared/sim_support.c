@@ -195,9 +195,6 @@ static void *getAdr(int *success, HMODULE dllHandle, const char *functionName) {
 // Return 0 to indicate failure
 static int loadDll(const char* dllPath, FMU *fmu) {
     int s = 1;
-#ifdef FMI_COSIMULATION
-    int x = 1;
-#endif
 #ifdef _MSC_VER
     HMODULE h = LoadLibrary(dllPath);
 #else
@@ -269,7 +266,7 @@ static void printModelDescription(ModelDescription* md){
     Element* e = (Element*)md;
     int i;
     int n; // number of attributes
-    char **attributes = getAttributesAsArray(e, &n);
+    const char **attributes = getAttributesAsArray(e, &n);
     Component *component;
 
     printf("%s\n", getElementTypeName(e));
@@ -385,7 +382,7 @@ void outputRow(FMU *fmu, fmiComponent c, double time, FILE* file, char separator
             // output names only
             if (separator == ',') {
                 // treat array element, e.g. print a[1, 2] as a[1.2]
-                char* s = getAttributeValue((Element *)sv, att_name);
+                const char* s = getAttributeValue((Element *)sv, att_name);
                 fprintf(file, "%c", separator);
                 while (*s) {
                     if (*s != ' ') {
