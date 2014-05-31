@@ -8,7 +8,20 @@
 #ifndef FMI_ME_H
 #define FMI_ME_H
 
+#ifdef _MSC_VER
 #include <windows.h>
+#define WINDOWS 1
+#else /* _MSC_VER */
+#include <errno.h>
+#define WINDOWS 0
+#define TRUE 1
+#define FALSE 0
+#define min(a,b) (a>b ? b : a)
+#define HANDLE void *
+/* See http://www.yolinux.com/TUTORIALS/LibraryArchives-StaticAndDynamic.html */
+#include <dlfcn.h>
+#endif /* _MSC_VER */
+
 #include "fmiModelFunctions.h"
 #include "xml_parser.h"
 

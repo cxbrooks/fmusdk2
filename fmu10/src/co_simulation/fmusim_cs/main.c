@@ -117,7 +117,11 @@ int main(int argc, char *argv[]) {
     printf("CSV file '%s' written\n", RESULT_FILE);
 
     // release FMU 
+#ifdef _MSC_VER
     FreeLibrary(fmu.dllHandle);
+#else
+    dlclose(fmu.dllHandle);
+#endif
     freeElement(fmu.modelDescription);
     return EXIT_SUCCESS;
 }

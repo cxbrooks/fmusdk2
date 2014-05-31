@@ -26,6 +26,10 @@
 fmiValueReference vrStates[NUMBER_OF_STATES] = STATES; 
 #endif
 
+#ifndef max
+#define max(a,b) ((a)>(b) ? (a) : (b))
+#endif
+
 // ---------------------------------------------------------------------------
 // Private helpers used below to validate function arguments
 // ---------------------------------------------------------------------------

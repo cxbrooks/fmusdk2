@@ -14,7 +14,11 @@
 #include "expat.h"
 #include "stack.h"
 
+#ifndef fmiModelTypes_h
+#ifndef fmiPlatformTypes_h
 typedef unsigned int fmiValueReference;
+#endif
+#endif
 #define fmiUndefinedValueReference (fmiValueReference)(-1)
 
 #define SIZEOF_ELM 31
