@@ -40,7 +40,7 @@ public:
 static char *strallocprintf(const char *format, va_list argp) {
     int n;
     char *result;
-#if WINDOWS    
+#ifdef _MSC_VER
     n = _vscprintf(format, argp);
 #else
     va_list argcopy; 

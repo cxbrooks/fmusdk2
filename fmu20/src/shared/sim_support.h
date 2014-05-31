@@ -13,18 +13,20 @@
 #define RESULT_FILE "result.csv"
 #define BUFSIZE 4096
 
-#if WINDOWS
+#ifdef _MSC_VER
 #ifdef _WIN64
 #define DLL_DIR   "binaries\\win64\\"
-#define DLL_SUFFIX ".dll"
 #define DLL_DIR2   "binaries\\win64\\"
 #else
 #define DLL_DIR   "binaries\\win32\\"
-#define DLL_SUFFIX2 ".dll"
 #define DLL_DIR2   "binaries\\win32\\"
-#endif
+#endif /* _WIN64 */
+
+#define DLL_SUFFIX ".dll"
+#define DLL_SUFFIX2 ".dll"
 
 #else
+
 #if __APPLE__
 
 // Use these for platforms other than OpenModelica

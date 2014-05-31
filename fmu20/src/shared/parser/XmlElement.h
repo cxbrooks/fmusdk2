@@ -147,7 +147,7 @@ public:
     const char *getDescriptionForVariable(ScalarVariable *sv);
     // get attribute from type, if not present look for it inside declared type.
     // Attributes example: 'min', 'max', 'quantity'.
-    const char */*ModelDescription::*/getAttributeFromTypeOrDeclaredType(ScalarVariable *sv, XmlParser::Att a);
+    const char * getAttributeFromTypeOrDeclaredType(ScalarVariable *sv, XmlParser::Att a);
 };
 
 #endif // XML_ELEMENT_H
