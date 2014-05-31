@@ -13,6 +13,7 @@
 #define XML_PARSER_EXCEPTION_H
 
 #include "exception"
+#include <stdarg.h>
 
 static char* strallocprintf(const char *format, va_list argp);
 
@@ -27,7 +28,7 @@ public:
     message = strallocprintf(format, argp);
     va_end(argp);
     }
-    ~XmlParserException() {
+    ~XmlParserException() throw() {
         if (message) free(message);
     }
 
@@ -39,7 +40,15 @@ public:
 static char *strallocprintf(const char *format, va_list argp) {
     int n;
     char *result;
+#if WINDOWS    
     n = _vscprintf(format, argp);
+#else
+    va_list argcopy; 
+    va_copy(argcopy, argp); 
+    n = vsnprintf(NULL, 0, format, argcopy); 
+    va_end(argcopy); 
+#endif
+
     result = (char *)malloc((n + 1) * sizeof(char));
     vsprintf(result, format, argp);
     return result;

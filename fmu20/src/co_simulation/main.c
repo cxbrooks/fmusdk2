@@ -128,7 +128,11 @@ static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char 
 }
 
 int main(int argc, char *argv[]) {
+#if WINDOWS
     const char* fmuFileName;
+#else
+    char* fmuFileName;
+#endif
     int i;
 
     // parse command line arguments and load the FMU
@@ -154,7 +158,11 @@ int main(int argc, char *argv[]) {
     printf("CSV file '%s' written\n", RESULT_FILE);
 
     // release FMU
+#ifdef _MSC_VER
     FreeLibrary(fmu.dllHandle);
+#else
+    dlclose(fmu.dllHandle);
+#endif
     freeModelDescription(fmu.modelDescription);
     if (categories) free(categories);
 

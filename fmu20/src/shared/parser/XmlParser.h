@@ -30,7 +30,7 @@ public:
     //Elements
     static const int SIZEOF_ELM = 31;
     static const char *elmNames[SIZEOF_ELM];
-    static const enum Elm {
+    /*static const*/ enum Elm {
         elm_BAD_DEFINED = -1,
         elm_fmiModelDescription, elm_ModelExchange, elm_CoSimulation, elm_SourceFiles, elm_File,
         elm_UnitDefinitions, elm_Unit, elm_BaseUnit, elm_DisplayUnit, elm_TypeDefinitions,
@@ -44,7 +44,7 @@ public:
     // Attributes
     static const int SIZEOF_ATT = 64; //61;
     static const char *attNames[SIZEOF_ATT];
-    static const enum Att {
+    /*static const*/ enum Att {
         att_BAD_DEFINED = -1,
         att_fmiVersion, att_modelName, att_guid, att_description, att_author,
         att_version, att_copyright, att_license, att_generationTool, att_generationDateAndTime,
@@ -66,7 +66,7 @@ public:
     // Enumeration values
     static const int SIZEOF_ENU = 17;
     static const char *enuNames[SIZEOF_ENU];
-    static enum Enu {
+    /*static*/ enum Enu {
         enu_BAD_DEFINED = -1,
         enu_flat, enu_structured, enu_dependent, enu_constant, enu_fixed,
         enu_tunable, enu_discrete, enu_parameter, enu_calculatedParameter, enu_input,

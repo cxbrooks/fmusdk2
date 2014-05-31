@@ -15,13 +15,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <stdarg.h>
 
 #include "fmi.h"
 #include "sim_support.h"
 
+#ifndef _MSC_VER
+#define MAX_PATH 1024
+#include <unistd.h>  // mkdtemp()
+#include <dlfcn.h> //dlsym()
+#endif
+
 extern FMU fmu;
 
-
+#if WINDOWS
 int unzip(const char *zipPath, const char *outPath) {
     int code;
     char cwd[BUFSIZE];
@@ -74,6 +81,47 @@ int unzip(const char *zipPath, const char *outPath) {
     return (code == SEVEN_ZIP_NO_ERROR || code == SEVEN_ZIP_WARNING) ? 1 : 0;
 }
 
+#else /* WINDOWS */
+
+int unzip(const char *zipPath, const char *outPath) {
+    int code;
+    char cwd[BUFSIZE];
+    int n;
+    char* cmd;
+
+    // remember current directory
+    if (!getcwd(cwd, BUFSIZE)) {
+      printf ("error: Could not get current directory\n");
+      return 0; // error
+    }
+        
+    // run the unzip command
+    n = strlen(UNZIP_CMD) + strlen(outPath) + 1 +  strlen(zipPath) + 16;
+    cmd = (char*)calloc(sizeof(char), n);
+    sprintf(cmd, "%s%s \"%s\" > /dev/null", UNZIP_CMD, outPath, zipPath); 
+    printf("cmd='%s'\n", cmd);
+    code = system(cmd);
+    free(cmd);
+    if (code!=SEVEN_ZIP_NO_ERROR) {
+        switch (code) {
+            printf("7z: ");
+            case SEVEN_ZIP_WARNING:            printf("warning\n"); break;
+            case SEVEN_ZIP_ERROR:              printf("error\n"); break;
+            case SEVEN_ZIP_COMMAND_LINE_ERROR: printf("command line error\n"); break;
+            case SEVEN_ZIP_OUT_OF_MEMORY:      printf("out of memory\n"); break;
+            case SEVEN_ZIP_STOPPED_BY_USER:    printf("stopped by user\n"); break;
+            default: printf("unknown problem\n");
+        }
+    }
+    
+    // restore current directory
+    chdir(cwd);
+    
+    return (code==SEVEN_ZIP_NO_ERROR || code==SEVEN_ZIP_WARNING) ? 1 : 0;  
+}
+#endif /* WINDOWS */
+
+#ifdef _MSC_VER
 // fileName is an absolute path, e.g. C:\test\a.fmu
 // or relative to the current dir, e.g. ..\test\a.fmu
 // Does not check for existence of the file
@@ -93,6 +141,28 @@ static char* getTmpPath() {
     return strdup(tmpPath);
 }
 
+#else 
+// fmuFileName is an absolute path, e.g. "C:\test\a.fmu"
+// or relative to the current dir, e.g. "..\test\a.fmu"
+static char* getFmuPath(const char* fmuFileName){
+  /* Not sure why this is useful.  Just returning the filename. */
+  return strdup(fmuFileName);
+}
+static char* getTmpPath() {
+  char template[13];  // Lenght of "fmuTmpXXXXXX" + null
+  sprintf(template, "%s", "fmuTmpXXXXXX");
+  //char *tmp = mkdtemp(strdup("fmuTmpXXXXXX"));
+  char *tmp = mkdtemp(template);
+  if (tmp==NULL) {
+    fprintf(stderr, "Couldn't create temporary directory\n");
+    exit(1);
+  }
+  char * results = calloc(sizeof(char), strlen(tmp) + 2);
+  strncat(results, tmp, strlen(tmp));
+  return strcat(results, "/");
+}
+#endif
+
 char *getTempResourcesLocation() {
     char *tempPath = getTmpPath();
     char *resourcesLocation = (char *)calloc(sizeof(char), 8 + strlen(RESOURCES_DIR) + strlen(tempPath));
@@ -104,9 +174,18 @@ char *getTempResourcesLocation() {
 }
 
 static void *getAdr(int *success, HMODULE dllHandle, const char *functionName) {
-    void* fp = GetProcAddress(dllHandle, functionName);
+    void* fp;
+#ifdef _MSC_VER
+    fp = GetProcAddress(dllHandle, functionName);
+#else
+    fp = dlsym(dllHandle, functionName);
+#endif
     if (!fp) {
         printf("warning: Function %s not found in dll\n", functionName);
+#ifdef _MSC_VER
+#else
+        printf ("Error was: %s\n", dlerror());
+#endif 
         *success = 0;
     }
     return fp;
@@ -115,11 +194,23 @@ static void *getAdr(int *success, HMODULE dllHandle, const char *functionName) {
 // Load the given dll and set function pointers in fmu
 // Return 0 to indicate failure
 static int loadDll(const char* dllPath, FMU *fmu) {
-    int x = 1, s = 1;
+    int s = 1;
+#ifdef FMI_COSIMULATION
+    int x = 1;
+#endif
+#ifdef _MSC_VER
     HMODULE h = LoadLibrary(dllPath);
+#else
+    printf("dllPath = %s\n", dllPath);
+    HMODULE h = dlopen(dllPath, RTLD_LAZY);
+#endif
 
     if (!h) {
         printf("error: Could not load %s\n", dllPath);
+#ifdef _MSC_VER
+#else
+        printf("The error was: %s\n", dlerror());
+#endif
         return 0; // failure
     }
     fmu->dllHandle = h;
@@ -237,8 +328,16 @@ void loadFMU(const char* fmuFileName) {
 #endif
     // load the FMU dll
     dllPath = calloc(sizeof(char), strlen(tmpPath) + strlen(DLL_DIR)
-        + strlen(modelId) +  strlen(".dll") + 1);
-    sprintf(dllPath,"%s%s%s.dll", tmpPath, DLL_DIR, modelId);
+            + strlen(modelId) +  strlen(DLL_SUFFIX) + 1);
+    sprintf(dllPath,"%s%s%s%s", tmpPath, DLL_DIR, modelId, DLL_SUFFIX);
+    if (!loadDll(dllPath, &fmu)) {
+        // try the alternative directory and suffix
+        dllPath = calloc(sizeof(char), strlen(tmpPath) + strlen(DLL_DIR2) 
+                + strlen(modelId) +  strlen(DLL_SUFFIX2) + 1);
+        sprintf(dllPath,"%s%s%s%s", tmpPath, DLL_DIR2, modelId, DLL_SUFFIX2);
+        if (!loadDll(dllPath, &fmu)) exit(EXIT_FAILURE); 
+    }
+
     if (!loadDll(dllPath, &fmu)) exit(EXIT_FAILURE);
     free(dllPath);
     free(fmuPath);

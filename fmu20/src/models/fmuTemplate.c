@@ -19,17 +19,25 @@
  * Copyright QTronic GmbH. All rights reserved.
  * ---------------------------------------------------------------------------*/
 
+fmiBoolean isCategoryLogged(ModelInstance *comp, int categoryIndex);
+
 // macro to be used to log messages. The macro check if current 
 // log category is valid and, if true, call the logger provided by simulator.
+
+// ## is special to gcc, see http://gcc.gnu.org/onlinedocs/cpp/Variadic-Macros.html
 #define FILTERED_LOG(instance, status, categoryIndex, message, ...) if (isCategoryLogged(instance, categoryIndex)) \
         instance->functions->logger(instance->functions->componentEnvironment, instance->instanceName, status, \
-        logCategoriesNames[categoryIndex], message, __VA_ARGS__);
+        logCategoriesNames[categoryIndex], message, ## __VA_ARGS__);
 
 static fmiString logCategoriesNames[] = {"logAll", "logError", "logFmiCall", "logEvent"};
 
 // array of value references of states
 #if NUMBER_OF_REALS>0
 fmiValueReference vrStates[NUMBER_OF_STATES] = STATES;
+#endif
+
+#ifndef max
+#define max(a,b) ((a)>(b) ? (a) : (b))
 #endif
 
 // ---------------------------------------------------------------------------

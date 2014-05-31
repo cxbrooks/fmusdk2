@@ -14,8 +14,10 @@
 extern "C" {
 #endif
 
+#ifndef fmiTypesPlatform_h
 // same as in FMI 2.0 specification
 typedef unsigned int fmiValueReference;
+#endif
 
 // elements from ModelDescription
 typedef struct ModelDescription ModelDescription;

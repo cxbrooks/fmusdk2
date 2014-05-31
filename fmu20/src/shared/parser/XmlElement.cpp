@@ -14,6 +14,7 @@
 #include "XmlElement.h"
 #include "XmlParserException.h"
 #include <assert.h>
+#include <cstring>
 
 #ifdef STANDALONE_XML_PARSER
 #define logThis(n, ...) printf(__VA_ARGS__);printf("\n")
@@ -22,6 +23,7 @@
 extern "C" {
 #include "logging.h" // logThis
 } // closing brace for extern "C"
+
 #endif // STANDALONE_XML_PARSER
 
 Element::~Element() {
@@ -30,8 +32,10 @@ Element::~Element() {
     }
     attributes.clear();
 }
-template <typename T> void Element::deleteListOfElements(std::vector<T *> list) {
-    for (std::vector<T *>::iterator it = list.begin(); it != list.end(); ++it) {
+template <typename T> void Element::deleteListOfElements(std::vector<T*> list) {
+    // https://stackoverflow.com/questions/3144604/stdvectortiterator-it-doesnt-compile
+    typename std::vector<T*>::iterator it;
+    for (it = list.begin(); it != list.end(); ++it) {
         delete *it;
     }
 }
@@ -48,7 +52,8 @@ void Element::printElement(int indent) {
     }
 }
 template <typename T> void Element::printListOfElements(int indent, std::vector<T *> list) {
-    for (std::vector<T *>::iterator it = list.begin(); it != list.end(); ++it) {
+    typename std::vector<T *>::iterator it;
+    for (it = list.begin(); it != list.end(); ++it) {
         (*it)->printElement(indent);
     }
 }

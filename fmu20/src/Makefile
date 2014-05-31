@@ -17,7 +17,12 @@ clean:
 
 # Sources shared between co-simulation and model exchange
 SHARED_SRCS = \
-	shared/sim_support.c \
+	shared/sim_support.c
+
+CPP_SRCS = \
+	shared/parser/XmlElement.cpp \
+	shared/parser/XmlParser.cpp \
+	shared/parser/XmlParserCApi.cpp
 
 # Dependencies for only fmusim_cs
 CO_SIMULATION_DEPS = \
@@ -42,21 +47,34 @@ SHARED_DEPS = \
 #CFLAGS=-m32
 # See also models/build_fmu
 
+CXX=c++
 # Create the binaries in the current directory because co_simulation already has
 # a directory named "fmusim_cs"
 fmusim_cs: $(CO_SIMULATION_DEPS) $(SHARED_DEPS) ../bin/
 	$(CC) $(CFLAGS) -g -Wall -DFMI_COSIMULATION \
+		-DSTANDALONE_XML_PARSER -DLIBXML_STATIC \
 		-Ishared/include -Ishared/parser/libxml -Ishared/parser -Ishared \
 		co_simulation/main.c $(SHARED_SRCS) \
-		-o $@ -lexpat -ldl
+		-c
+	$(CXX) $(CFLAGS) -g -Wall -DFMI_COSIMULATION \
+		-DSTANDALONE_XML_PARSER -DLIBXML_STATIC \
+		-Ishared/include -Ishared/parser/libxml -Ishared/parser -Ishared \
+		main.o sim_support.o $(CPP_SRCS) \
+		-o $@ -lexpat -ldl -lxml2
 	cp fmusim_cs ../bin/
 
 fmusim_me: $(MODEL_EXCHANGE_DEPS) $(SHARED_DEPS) ../bin/
-	$(CC) $(CFLAGS) -g -Wall \
+	$(CC) $(CFLAGS) -g -Wall -DFMI_COSIMULATION \
+		-DSTANDALONE_XML_PARSER -DLIBXML_STATIC \
 		-Ishared/include -Ishared/parser/libxml -Ishared/parser -Ishared \
 		model_exchange/main.c $(SHARED_SRCS) \
-		-o $@ -lexpat -ldl
-	cp fmusim_me ../bin/
+		-c
+	$(CXX) $(CFLAGS) -g -Wall -DFMI_COSIMULATION \
+		-DSTANDALONE_XML_PARSER -DLIBXML_STATIC \
+		-Ishared/include -Ishared/parser/libxml -Ishared/parser -Ishared \
+		main.o sim_support.o $(CPP_SRCS) \
+		-o $@ -lexpat -ldl -lxml2
+ 	cp fmusim_me ../bin/
 
 ../bin/:
 	if [ ! -d ../bin ]; then \
