@@ -74,7 +74,7 @@ fmusim_me: $(MODEL_EXCHANGE_DEPS) $(SHARED_DEPS) ../bin/
 		-Ishared/include -Ishared/parser/libxml -Ishared/parser -Ishared \
 		main.o sim_support.o $(CPP_SRCS) \
 		-o $@ -lexpat -ldl -lxml2
- 	cp fmusim_me ../bin/
+	cp fmusim_me ../bin/
 
 ../bin/:
 	if [ ! -d ../bin ]; then \
