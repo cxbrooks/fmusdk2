@@ -52,15 +52,21 @@ SHARED_DEPS = \
 
 # Create the binaries in the current directory because co_simulation already has
 # a directory named "fmusim_cs"
-fmusim_cs: $(CO_SIMULATION_DEPS) $(SHARED_DEPS)
+fmusim_cs: $(CO_SIMULATION_DEPS) $(SHARED_DEPS) ../bin/
 	$(CC) $(CFLAGS) -g -Wall -DFMI_COSIMULATION -Ico_simulation/fmusim_cs -Ico_simulation/include \
 		-Ishared \
 		co_simulation/fmusim_cs/main.c $(SHARED_SRCS) \
 		-o $@ -lexpat -ldl
-	cp fmusim_cs ../bin
+	cp fmusim_cs ../bin/
 
-fmusim_me: $(MODEL_EXCHANGE_DEPS) $(SHARED_DEPS)
+fmusim_me: $(MODEL_EXCHANGE_DEPS) $(SHARED_DEPS) ../bin/
 	$(CC) $(CFLAGS) -g -Wall -Imodel_exchange/fmusim_me -Imodel_exchange/include -Ishared \
 		model_exchange/fmusim_me/main.c $(SHARED_SRCS) \
 		-o $@ -lexpat -ldl
-	cp fmusim_me ../bin
+	cp fmusim_me ../bin/
+
+../bin/:
+	if [ ! -d ../bin ]; then \
+		echo "Creating ../bin/"; \
+		mkdir ../bin/; \
+	fi
