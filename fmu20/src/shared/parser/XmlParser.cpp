@@ -15,6 +15,7 @@
 #include "XmlParserException.h"
 #include "XmlElement.h"
 
+#include <cstring> // strdup()
 
 #ifdef STANDALONE_XML_PARSER
 // ## is special to gcc, see http://gcc.gnu.org/onlinedocs/cpp/Variadic-Macros.html

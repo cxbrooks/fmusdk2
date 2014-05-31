@@ -50,7 +50,7 @@ static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char 
     ModelDescription* md;                    // handle to the parsed XML file
     fmiBoolean toleranceDefined = fmiFalse;  // true if model description define tolerance
     fmiReal tolerance = 0;                   // used in setting up the experiment
-    ValueStatus vs;
+    ValueStatus vs = valueIllegal;
     int nSteps = 0;
     Element *defaultExp;
     FILE* file;
@@ -124,6 +124,9 @@ static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char 
     printf("Simulation from %g to %g terminated successful\n", tStart, tEnd);
     printf("  steps ............ %d\n", nSteps);
     printf("  fixed step size .. %g\n", h);
+
+    fclose(file);
+
     return 1; // success
 }
 

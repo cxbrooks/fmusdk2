@@ -64,12 +64,12 @@ fmusim_cs: $(CO_SIMULATION_DEPS) $(SHARED_DEPS) ../bin/
 	cp fmusim_cs ../bin/
 
 fmusim_me: $(MODEL_EXCHANGE_DEPS) $(SHARED_DEPS) ../bin/
-	$(CC) $(CFLAGS) -g -Wall -DFMI_COSIMULATION \
+	$(CC) $(CFLAGS) -g -Wall \
 		-DSTANDALONE_XML_PARSER -DLIBXML_STATIC \
 		-Ishared/include -Ishared/parser/libxml -Ishared/parser -Ishared \
 		model_exchange/main.c $(SHARED_SRCS) \
 		-c
-	$(CXX) $(CFLAGS) -g -Wall -DFMI_COSIMULATION \
+	$(CXX) $(CFLAGS) -g -Wall \
 		-DSTANDALONE_XML_PARSER -DLIBXML_STATIC \
 		-Ishared/include -Ishared/parser/libxml -Ishared/parser -Ishared \
 		main.o sim_support.o $(CPP_SRCS) \
