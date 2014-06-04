@@ -39,7 +39,7 @@ FMU fmu; // the fmu to simulate
 // the simulator may therefore miss state events and fires state events typically too late.
 static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char separator,
                     int nCategories, char **categories) {
-    int i, n;
+    int i;
     double dt, tPre;
     fmiBoolean timeEvent, stateEvent, stepEvent, terminateSimulation;
     double time;
@@ -83,7 +83,7 @@ static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char 
     if (!c) return error("could not instantiate model");
 
     if (nCategories > 0) {
-        fmiFlag = fmu->setDebugLogging(c, fmiTrue, nCategories, categories);
+        fmiFlag = fmu->setDebugLogging(c, fmiTrue, nCategories, (const fmiString*) categories);
         if (fmiFlag > fmiWarning) {
             return error("could not initialize model; failed FMI set debug logging");
         }
@@ -255,7 +255,11 @@ static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char 
 }
 
 int main(int argc, char *argv[]) {
+#if WINDOWS
     const char* fmuFileName;
+#else
+    char* fmuFileName;
+#endif
     int i;
 
     // parse command line arguments and load the FMU
