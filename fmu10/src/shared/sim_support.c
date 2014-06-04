@@ -226,7 +226,7 @@ static int loadDll(const char* dllPath, FMU *fmu) {
     if (s==0) { 
         s = 1; // work around bug for FMUs exported using Dymola 2012 and SimulationX 3.x
         fmu->getTypesPlatform    = (fGetTypesPlatform)   getAdr(&s, fmu, "fmiGetModelTypesPlatform");
-        if (s==1) printf("  using fmiGetModelTypesPlatform instead\n", dllPath);
+        if (s==1) printf("  using fmiGetModelTypesPlatform instead\n");
     }
     fmu->instantiateSlave        = (fInstantiateSlave)   getAdr(&s, fmu, "fmiInstantiateSlave");
     fmu->initializeSlave         = (fInitializeSlave)    getAdr(&s, fmu, "fmiInitializeSlave");

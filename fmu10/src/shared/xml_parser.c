@@ -111,6 +111,12 @@ static int checkEnumValue(const char* enu);
 // Returns -1 or a globally unique id for the value such that
 // enuNames[id] is the string representation of the enum value.
 Enu getEnumValue(void* element, Att a, ValueStatus* vs) {
+    // FIXME: Under Mac OS X: warning
+    //   shared/xml_parser.c:121:14: warning: implicit conversion from enumeration type
+    //     'ValueStatus' to different enumeration type 'Enu' [-Wconversion]
+    //   Enu id = valueDefined;
+    // FIXME: valueDefined, valueMissing and valueIllegal are enum ValueStatus
+    // enu_flat etc. are enum Enu.  
     const char* value = getString(element, a);
     Enu id = valueDefined;
     if (!value) { 
@@ -206,8 +212,8 @@ ScalarVariable* getVariableByName(ModelDescription* md, const char* name) {
 // Real, String, Boolean define own base types.
 int sameBaseType(Elm t1, Elm t2){
     return t1==t2 || 
-           t1==elm_Enumeration && t2==elm_Integer ||
-           t2==elm_Enumeration && t1==elm_Integer;
+        (t1==elm_Enumeration && t2==elm_Integer) ||
+        (t2==elm_Enumeration && t1==elm_Integer);
 }
 
 // returns NULL if variable not found or vr==fmiUndefinedValueReference
@@ -256,7 +262,6 @@ const char * getDescription(ModelDescription* md, ScalarVariable* sv) {
 const char * getVariableAttributeString(ModelDescription* md,
         fmiValueReference vr, Elm type, Att a){
     const char* value;
-    const char* declaredType;
     Type* tp; 
     ScalarVariable* sv = getVariable(md, vr, type);
     if (!sv) return NULL;
@@ -695,15 +700,18 @@ void printElement(int indent, void* element){
     // print child nodes
     indent += 2;
     switch (getAstNodeType(e->type)) {
+        case astElement:
+            // FIXME: Should we do anything for astElements?
+            break;
         case astListElement:
-            printList(indent, ((ListElement*)e)->list);
+            printList(indent, (void **) ((ListElement*)e)->list);
             break;
         case astScalarVariable:
             printElement(indent, ((Type*)e)->typeSpec);
-            printList(indent, ((ScalarVariable*)e)->directDependencies);
+            printList(indent, (void **) ((ScalarVariable*)e)->directDependencies);
             break;
         case astType:
-            printElement(indent, ((Type*)e)->typeSpec);
+            printElement(indent, (void **) ((Type*)e)->typeSpec);
             break;
         case astCoSimulation: {
             CoSimulation* cs = (CoSimulation*)e;
@@ -713,11 +721,11 @@ void printElement(int indent, void* element){
         }
         case astModelDescription: {
             ModelDescription *md = (ModelDescription*)e;
-            printList(indent, md->unitDefinitions);
-            printList(indent, md->typeDefinitions);
+            printList(indent, (void **) md->unitDefinitions);
+            printList(indent, (void **) md->typeDefinitions);
             printElement(indent, md->defaultExperiment);
-            printList(indent, md->vendorAnnotations);
-            printList(indent, md->modelVariables);
+            printList(indent, (void **) md->vendorAnnotations);
+            printList(indent, (void **) md->modelVariables);
             printElement(indent, md->cosimulation);
             break;
         }
@@ -733,7 +741,7 @@ static void printList(int indent, void** list){
 // -------------------------------------------------------------------------
 // free memory of the AST
 
-static void freeList(void** list);
+static void freeList(void** /*list*/);
 
 void freeElement(void* element){
     int i;
@@ -741,15 +749,18 @@ void freeElement(void* element){
     if (!e) return;
     // free attributes
     for (i=0; i<e->n; i+=2) 
-        free(e->attributes[i+1]);
+        free((void *)e->attributes[i+1]);
     if (e->attributes) free(e->attributes);
     // free child nodes
     switch (getAstNodeType(e->type)) {
+        case astElement:
+            // FIXME: Should we do anything for astElements?
+            break;
         case astListElement:
-            freeList(((ListElement*)e)->list);
+            freeList((void **) ((ListElement*)e)->list);
             break;
         case astScalarVariable:
-            freeList(((ScalarVariable*)e)->directDependencies);
+            freeList((void **) ((ScalarVariable*)e)->directDependencies);
         case astType:
             freeElement(((Type*)e)->typeSpec);
             break;
@@ -761,11 +772,11 @@ void freeElement(void* element){
         }
         case astModelDescription: {
             ModelDescription* md = (ModelDescription*)e;
-            freeList(md->unitDefinitions);
-            freeList(md->typeDefinitions);
+            freeList((void **) md->unitDefinitions);
+            freeList((void **) md->typeDefinitions);
             freeElement(md->defaultExperiment);
-            freeList(md->vendorAnnotations);
-            freeList(md->modelVariables);
+            freeList((void **) md->vendorAnnotations);
+            freeList((void **) md->modelVariables);
             freeElement(md->cosimulation);
             break;
        }
@@ -791,7 +802,7 @@ ModelDescription* validate(ModelDescription* md) {
     if (md->modelVariables)
     for (i=0; md->modelVariables[i]; i++){
         ScalarVariable* sv = (ScalarVariable*)md->modelVariables[i];
-        char* declaredType = getString(sv->typeSpec, att_declaredType);
+        char* declaredType = (char *)getString(sv->typeSpec, att_declaredType);
         Type* decltype = getDeclaredType(md, declaredType);
         if (declaredType && decltype==NULL) {
             printf("Warning: Declared type %s of variable %s not found in modelDescription.xml\n", declaredType, getName(sv));
@@ -841,7 +852,7 @@ ModelDescription* parse(const char* xmlPath) {
         if (!XML_Parse(parser, text, n, done)){
              printf("Parse error in file %s at line %d:\n%s\n",
                      xmlPath,
-                     XML_GetCurrentLineNumber(parser),
+                     (int) XML_GetCurrentLineNumber(parser),
                      XML_ErrorString(XML_GetErrorCode(parser)));
              while (! stackIsEmpty(stack)) md = stackPop(stack);
              if (md) freeElement(md);
