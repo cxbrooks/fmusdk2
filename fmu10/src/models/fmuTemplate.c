@@ -114,6 +114,7 @@ static fmiComponent instantiateModel(char* fname, fmiString instanceName, fmiStr
         comp->b = functions.allocateMemory(NUMBER_OF_BOOLEANS, sizeof(fmiBoolean));
         comp->s = functions.allocateMemory(NUMBER_OF_STRINGS,  sizeof(fmiString));
         comp->isPositive = functions.allocateMemory(NUMBER_OF_EVENT_INDICATORS, sizeof(fmiBoolean));
+        comp->instanceName = functions.allocateMemory(1 + strlen(instanceName), sizeof(char));
     }
     if (!comp || !comp->r || !comp->i || !comp->b || !comp->s || !comp->isPositive) {
         functions.logger(NULL, instanceName, fmiError, "error",
@@ -122,7 +123,7 @@ static fmiComponent instantiateModel(char* fname, fmiString instanceName, fmiStr
     }
     if (loggingOn) functions.logger(NULL, instanceName, fmiOK, "log",
             "%s: GUID=%s", fname, GUID);
-    comp->instanceName = functions.allocateMemory(1 + strlen(instanceName), sizeof(char));
+    strcpy((char *)comp->instanceName, (char *)instanceName);
     comp->GUID = GUID;
     comp->functions = functions;
     comp->loggingOn = loggingOn;
