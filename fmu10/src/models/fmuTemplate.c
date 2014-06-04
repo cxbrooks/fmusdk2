@@ -122,7 +122,7 @@ static fmiComponent instantiateModel(char* fname, fmiString instanceName, fmiStr
     }
     if (loggingOn) functions.logger(NULL, instanceName, fmiOK, "log",
             "%s: GUID=%s", fname, GUID);
-    comp->instanceName = instanceName;
+    comp->instanceName = functions.allocateMemory(1 + strlen(instanceName), sizeof(char));
     comp->GUID = GUID;
     comp->functions = functions;
     comp->loggingOn = loggingOn;
@@ -178,6 +178,7 @@ void freeInstance(char* fname, fmiComponent c) {
         comp->functions.freeMemory(comp->s);
     }
     if (comp->isPositive) comp->functions.freeMemory(comp->isPositive);
+    if (comp->instanceName) comp->functions.freeMemory((void *)comp->instanceName);
     comp->functions.freeMemory(comp);
 }
 
