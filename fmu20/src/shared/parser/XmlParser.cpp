@@ -28,9 +28,6 @@ extern "C" {
 } // closing brace for extern "C"
 #endif // STANDALONE_XML_PARSER
 
-/* Helper functions to check validity of xml. */
-static int checkAttribute(const char* att);
-
 const char *XmlParser::elmNames[SIZEOF_ELM] = { 
     "fmiModelDescription", "ModelExchange", "CoSimulation", "SourceFiles", "File",
     "UnitDefinitions", "Unit", "BaseUnit", "DisplayUnit", "TypeDefinitions",
