@@ -21,3 +21,20 @@
 *.i*86
 *.x86_64
 *.hex
+
+# build directories
+fmu10/bin
+fmu10/fmu
+fmu20/bin
+fmu20/fmu
+fmu10/src/models/*/fmu/
+fmu10/src/fmusim_cs
+fmu10/src/fmusim_cs.dSYM
+fmu10/src/fmusim_me
+fmu10/src/fmusim_me.dSYM
+fmu20/src/fmusim_cs
+fmu20/src/fmusim_cs.dSYM
+fmu20/src/fmusim_me
+fmu20/src/fmusim_me.dSYM
+fmu20/src/models/*/fmu/
+
