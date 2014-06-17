@@ -152,16 +152,24 @@ extern "C" {
   defined before including this file. For instance,
   it may be set to __declspec(dllimport).
 */
-#if !defined(FMI_Export) && !defined(FMI_FUNCTION_PREFIX)
- #if defined _WIN32 || defined __CYGWIN__
+/* See https://trac.fmi-standard.org/ticket/173 */
+/* Under Linux, compile with -fvisibility=hidden, see
+   https://www.gnu.org/software/gnulib/manual/html_node/Exported-Symbols-of-Shared-Libraries.html
+*/
+#if !defined(FMI_Export) 
+#if !defined(FMI_FUNCTION_PREFIX)
+  #if defined _WIN32 || defined __CYGWIN__
   /* Note: both gcc & MSVC on Windows support this syntax. */
-      #define FMI_Export __declspec(dllexport)
- #else
-  #if __GNUC__ >= 4
-    #define FMI_Export __attribute__ ((visibility ("default")))
+#define FMI_Export __declspec(dllexport)
   #else
-    #define FMI_Export
+   #if __GNUC__ >= 4
+#define FMI_Export __attribute__ ((visibility ("default")))
+   #else
+     #define FMI_Export
+   #endif
   #endif
+ #else
+   #define FMI_Export
  #endif
 #endif
 

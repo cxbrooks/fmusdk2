@@ -39,8 +39,10 @@ all:
 	echo `pwd`
 	$(CC) -g -c $(CBITSFLAGS) $(PIC) -Wall $(CSORME_INCLUDE) $(CFLAGS) $< -o $@
 
+# Under Linux, compile with -fvisibility=hidden, see
+# https://www.gnu.org/software/gnulib/manual/html_node/Exported-Symbols-of-Shared-Libraries.html
 %.so: %.o
-	$(CC) $(CBITSFLAGS) -shared -Wl,-soname,$@ -o $@ $<
+	$(CC) $(CBITSFLAGS) -fvisibility=hidden -shared -Wl,-soname,$@ -o $@ $<
 
 %.dylib: %.o
 	$(CC) -dynamiclib -o $@ $<
