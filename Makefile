@@ -76,26 +76,26 @@ run_all_fmu20:
 FMUCHECK_LOG = 3
 fmuCheck: fmuCheck_fmu10 fmuCheck_fmu20
 fmuCheck_fmu10:
-	fmuCheck -o result_cs10_fmuCheck_bouncingBall.csv -s 4 -h 0.01 -l $(FMUCHECK_LOG) fmu10/fmu/me/bouncingBall.fmu 
+	fmuCheck -o result_cs10_fmuCheck_bouncingBall.csv -s 4 -h 0.01 -l $(FMUCHECK_LOG) fmu10/fmu/cs/bouncingBall.fmu 
 	fmuCheck -o result_me10_fmuCheck_bouncingBall.csv -s 4 -h 0.01 -l $(FMUCHECK_LOG) fmu10/fmu/me/bouncingBall.fmu 
-	fmuCheck -o result_cs10_fmuCheck_vanDerPol.csv -s 5 -h 0.1 -l $(FMUCHECK_LOG) fmu10/fmu/me/vanDerPol.fmu 
+	fmuCheck -o result_cs10_fmuCheck_vanDerPol.csv -s 5 -h 0.1 -l $(FMUCHECK_LOG) fmu10/fmu/cs/vanDerPol.fmu 
 	fmuCheck -o result_me10_fmuCheck_vanDerPol.csv -s 5 -h 0.1 -l $(FMUCHECK_LOG) fmu10/fmu/me/vanDerPol.fmu 
-	fmuCheck -o result_cs10_fmuCheck_dq.csv -s 1 -h 0.1 -l $(FMUCHECK_LOG) fmu10/fmu/me/dq.fmu 
+	fmuCheck -o result_cs10_fmuCheck_dq.csv -s 1 -h 0.1 -l $(FMUCHECK_LOG) fmu10/fmu/cs/dq.fmu 
 	fmuCheck -o result_me10_fmuCheck_dq.csv -s 1 -h 0.1 -l $(FMUCHECK_LOG) fmu10/fmu/me/dq.fmu 
-	fmuCheck -o result_cs10_fmuCheck_inc.csv -s 15 -h 15 -l $(FMUCHECK_LOG) fmu10/fmu/me/inc.fmu 
-	fmuCheck -o result_me10_fmuCheck_inc.csv -s 1 -h 15 -l $(FMUCHECK_LOG) fmu10/fmu/me/inc.fmu 
-	fmuCheck -o result_cs10_fmuCheck_values.csv -s 12 -h 0.3 -l $(FMUCHECK_LOG) fmu10/fmu/me/values.fmu 
-	fmuCheck -o result_me10_fmuCheck_values.csv -s 12 -h 0.3 -l $(FMUCHECK_LOG) fmu10/fmu/me/values.fmu 
+	fmuCheck -o result_cs10_fmuCheck_inc.csv -s 15 -h 0.5 -l $(FMUCHECK_LOG) fmu10/fmu/cs/inc.fmu 
+	fmuCheck -o result_me10_fmuCheck_inc.csv -s 15 -h 15 -l $(FMUCHECK_LOG) fmu10/fmu/me/inc.fmu 
+	fmuCheck -o result_cs10_fmuCheck_values.csv -s 12 -h 0.3 -l $(FMUCHECK_LOG) fmu10/fmu/cs/values.fmu 
+	fmuCheck -o result_me10_fmuCheck_values.csv -s 12 -h 12 -l $(FMUCHECK_LOG) fmu10/fmu/me/values.fmu 
 
 fmuCheck_fmu20:
-	fmuCheck -o result_cs20_fmuCheck_bouncingBall.csv -s 4 -h 0.01 -l $(FMUCHECK_LOG) fmu20/fmu/me/bouncingBall.fmu 
+	fmuCheck -o result_cs20_fmuCheck_bouncingBall.csv -s 4 -h 0.01 -l $(FMUCHECK_LOG) fmu20/fmu/cs/bouncingBall.fmu 
 	fmuCheck -o result_me20_fmuCheck_bouncingBall.csv -s 4 -h 0.01 -l $(FMUCHECK_LOG) fmu20/fmu/me/bouncingBall.fmu 
-	fmuCheck -o result_cs20_fmuCheck_vanDerPol.csv -s 5 -h 0.1 -l $(FMUCHECK_LOG) fmu20/fmu/me/vanDerPol.fmu 
+	fmuCheck -o result_cs20_fmuCheck_vanDerPol.csv -s 5 -h 0.1 -l $(FMUCHECK_LOG) fmu20/fmu/cs/vanDerPol.fmu 
 	fmuCheck -o result_me20_fmuCheck_vanDerPol.csv -s 5 -h 0.1 -l $(FMUCHECK_LOG) fmu20/fmu/me/vanDerPol.fmu 
-	fmuCheck -o result_cs20_fmuCheck_dq.csv -s 1 -h 0.1 -l $(FMUCHECK_LOG) fmu20/fmu/me/dq.fmu 
+	fmuCheck -o result_cs20_fmuCheck_dq.csv -s 1 -h 0.1 -l $(FMUCHECK_LOG) fmu20/fmu/cs/dq.fmu 
 	fmuCheck -o result_me20_fmuCheck_dq.csv -s 1 -h 0.1 -l $(FMUCHECK_LOG) fmu20/fmu/me/dq.fmu 
-	fmuCheck -o result_cs20_fmuCheck_inc.csv -s 15 -h 15 -l $(FMUCHECK_LOG) fmu20/fmu/me/inc.fmu 
-	fmuCheck -o result_me20_fmuCheck_inc.csv -s 1 -h 15 -l $(FMUCHECK_LOG) fmu20/fmu/me/inc.fmu 
-	fmuCheck -o result_cs20_fmuCheck_values.csv -s 12 -h 0.3 -l $(FMUCHECK_LOG) fmu20/fmu/me/values.fmu 
-	fmuCheck -o result_me20_fmuCheck_values.csv -s 12 -h 0.3 -l $(FMUCHECK_LOG) fmu20/fmu/me/values.fmu 
+	fmuCheck -o result_cs20_fmuCheck_inc.csv -s 15 -h 0.5 -l $(FMUCHECK_LOG) fmu20/fmu/cs/inc.fmu 
+	fmuCheck -o result_me20_fmuCheck_inc.csv -s 15 -h 15 -l $(FMUCHECK_LOG) fmu20/fmu/me/inc.fmu 
+	fmuCheck -o result_cs20_fmuCheck_values.csv -s 12 -h 0.3 -l $(FMUCHECK_LOG) fmu20/fmu/cs/values.fmu 
+	fmuCheck -o result_me20_fmuCheck_values.csv -s 12 -h 12 -l $(FMUCHECK_LOG) fmu20/fmu/me/values.fmu 
 
