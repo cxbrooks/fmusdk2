@@ -92,6 +92,8 @@ static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char 
     fmiFlag = fmu->terminateSlave(c);
     fmu->freeSlaveInstance(c);
 
+    fclose(file);
+
     // print simulation summary 
     printf("Simulation from %g to %g terminated successful\n", tStart, tEnd);
     printf("  steps ............ %d\n", nSteps);
