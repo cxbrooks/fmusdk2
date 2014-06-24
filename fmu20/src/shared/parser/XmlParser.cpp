@@ -69,6 +69,7 @@ const char *XmlParser::enuNames[SIZEOF_ENU] = {
 
 XmlParser::XmlParser(char *xmlPath) {
     this->xmlPath = strdup(xmlPath);
+    xmlReader = NULL;
 }
 
 XmlParser::~XmlParser() {
