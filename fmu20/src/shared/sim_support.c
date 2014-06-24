@@ -540,6 +540,7 @@ void fmuLogger(void *componentEnvironment, fmiString instanceName, fmiStatus sta
     if (!instanceName) instanceName = "?";
     if (!category) category = "?";
     printf("%s %s (%s): %s\n", fmiStatusToString(status), instanceName, category, msg);
+    va_end(argp);
 }
 
 int error(const char* message){
