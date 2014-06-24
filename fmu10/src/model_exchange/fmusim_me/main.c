@@ -94,6 +94,10 @@ static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char 
     if (!(file=fopen(RESULT_FILE, "w"))) {
         printf("could not write %s because:\n", RESULT_FILE);
         printf("    %s\n", strerror(errno));
+        if (x!=NULL) free(x);
+        if (xdot!= NULL) free(xdot);
+        if (z!= NULL) free(z);
+        if (prez!= NULL) free(prez);
         return 0; // failure
     }
 
@@ -198,6 +202,7 @@ static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char 
   if (xdot!= NULL) free(xdot);
   if (z!= NULL) free(z);
   if (prez!= NULL) free(prez);
+
 
   // print simulation summary 
   printf("Simulation from %g to %g terminated successful\n", t0, tEnd);
