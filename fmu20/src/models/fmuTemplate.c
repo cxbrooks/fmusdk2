@@ -90,7 +90,7 @@ static fmi2Boolean vrOutOfRange(ModelInstance *comp, const char *f, fmi2ValueRef
 
 static fmi2Status unsupportedFunction(fmi2Component c, const char *fName, int statesExpected) {
     ModelInstance *comp = (ModelInstance *)c;
-    fmi2CallbackLogger log = comp->functions->logger;
+    //fmi2CallbackLogger log = comp->functions->logger;
     if (invalidState(comp, fName, statesExpected))
         return fmi2Error;
     FILTERED_LOG(comp, fmi2OK, LOG_FMI_CALL, fName);

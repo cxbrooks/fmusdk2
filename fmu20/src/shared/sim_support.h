@@ -30,7 +30,7 @@
 void fmuLogger(fmi2Component c, fmi2String instanceName, fmi2Status status, fmi2String category, fmi2String message, ...);
 int unzip(const char *zipPath, const char *outPath);
 void parseArguments(int argc, char *argv[], const char **fmuFileName, double *tEnd, double *h,
-                    int *loggingOn, char *csv_separator, int *nCategories, char **logCategories[]);
+                    int *loggingOn, char *csv_separator, int *nCategories, const fmi2String *logCategories[]);
 void loadFMU(const char *fmuFileName);
 void deleteUnzippedFiles();
 void outputRow(FMU *fmu, fmi2Component c, double time, FILE* file, char separator, fmi2Boolean header);

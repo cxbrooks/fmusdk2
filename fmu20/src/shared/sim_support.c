@@ -612,7 +612,7 @@ int error(const char* message){
 }
 
 void parseArguments(int argc, char *argv[], const char **fmuFileName, double *tEnd, double *h,
-                    int *loggingOn, char *csv_separator, int *nCategories, char **logCategories[]) {
+                    int *loggingOn, char *csv_separator, int *nCategories, const fmi2String *logCategories[]) {
     // parse command line arguments
     if (argc > 1) {
         *fmuFileName = argv[1];

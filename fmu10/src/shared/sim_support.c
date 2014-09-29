@@ -200,7 +200,10 @@ static void* getAdr(int* s, FMU *fmu, const char* functionName){
 // Load the given dll and set function pointers in fmu
 // Return 0 to indicate failure
 static int loadDll(const char* dllPath, FMU *fmu) {
-    int x = 1, s = 1;
+    int s = 1;
+#ifdef FMI_COSIMULATION   
+    int x = 1;
+#endif
 #ifdef _MSC_VER
     HANDLE h = LoadLibrary(dllPath);
 #else
