@@ -16,24 +16,27 @@
 </LogCategories>
 
 <ModelVariables>
-  <ScalarVariable name="x" valueReference="0" description="the only state" initial="exact">
-   <Real start="1"/>
+  <ScalarVariable name="x" valueReference="0" description="the only state"
+                  causality="local" variability="continuous" initial="exact">
+    <Real start="1"/>
   </ScalarVariable>
-  <ScalarVariable name="der(x)" valueReference="1">
+  <ScalarVariable name="der(x)" valueReference="1"
+                  causality="local" variability="continuous" initial="calculated">
     <Real derivative="1"/>
   </ScalarVariable>
-  <ScalarVariable name="k" valueReference="2" causality="parameter" variability="fixed" initial="exact">
+  <ScalarVariable name="k" valueReference="2"
+                  causality="parameter" variability="fixed" initial="exact">
     <Real start="1"/>
   </ScalarVariable>
 </ModelVariables>
 
 <ModelStructure>
-  <Outputs/>
   <Derivatives>
     <Unknown index="2" />
   </Derivatives>
-  <DiscreteStates />
-  <InitialUnknowns />
+  <InitialUnknowns>
+    <Unknown index="2"/>
+  </InitialUnknowns>
 </ModelStructure>
 
 </fmiModelDescription>

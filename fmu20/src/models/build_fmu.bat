@@ -1,4 +1,4 @@
-@echo off
+@echo off 
 rem ------------------------------------------------------------
 rem This batch builds an FMU of the FMU SDK
 rem Usage: build_fmu (me|cs) <fmu_dir_name> (-win64)
@@ -40,9 +40,8 @@ if not exist temp mkdir temp
 pushd temp
 if exist *.dll del /Q *.dll
 
-rem /wd4090 disables warnings about different 'const' qualifiers
 if %1==cs (set DEF=/DFMI_COSIMULATION) else set DEF=
-cl /LD /wd4090 /nologo %DEF% ..\%2\%2.c /I ..\. /I ..\..\shared\include
+cl /LD /nologo %DEF% ..\%2\%2.c /I ..\. /I ..\..\shared\include
 if not exist %2.dll goto compileError
 
 rem create FMU dir structure with root 'fmu'

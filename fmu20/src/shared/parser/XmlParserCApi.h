@@ -14,9 +14,9 @@
 extern "C" {
 #endif
 
-#ifndef fmiTypesPlatform_h
+#ifndef fmi2TypesPlatform_h
 // same as in FMI 2.0 specification
-typedef unsigned int fmiValueReference;
+typedef unsigned int fmi2ValueReference;
 #endif
 
 // elements from ModelDescription
@@ -146,7 +146,7 @@ int getAnnotationsSize(ScalarVariable *sv);
 Element *getAnnotation(ScalarVariable *sv, int index);
 
 // get the valueReference of current variable. This attribute is mandatory for a variable.
-fmiValueReference getValueReference(ScalarVariable *sv);
+fmi2ValueReference getValueReference(ScalarVariable *sv);
 // returns one of constant, fixed, tunable, discrete, continuous.
 // If value is missing, the default continuous is returned.
 // If unknown value, return enu_BAD_DEFINED.

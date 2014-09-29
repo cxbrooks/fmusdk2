@@ -50,7 +50,7 @@ void setStartValues(ModelInstance *comp) {
     i(int_out_) = 0;
     b(bool_in_) = fmiTrue;
     b(bool_out_) = fmiFalse;
-    copy(string_in_, "a string");
+    copy(string_in_, "QTronic");
     copy(string_out_, month[0]);
 }
 

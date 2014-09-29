@@ -52,7 +52,6 @@
 #endif /*__APPLE__*/
 #endif /*WINDOWS*/
 
-
 // return codes of the 7z command line tool
 #define SEVEN_ZIP_NO_ERROR 0 // success
 #define SEVEN_ZIP_WARNING 1  // e.g., one or more files were locked during zip
@@ -63,12 +62,10 @@
 
 void fmuLogger(fmiComponent c, fmiString instanceName, fmiStatus status, fmiString category, fmiString message, ...);
 int unzip(const char *zipPath, const char *outPath);
-void parseArguments(int argc, char *argv[], char** fmuFileName, double* tEnd, double* h, int* loggingOn, char* csv_separator);
+void parseArguments(int argc, char *argv[], const char** fmuFileName, double* tEnd, double* h, int* loggingOn, char* csv_separator);
 void loadFMU(const char* fmuFileName);
-#ifndef _MSC_VER
-typedef int boolean; 
-#endif
-void outputRow(FMU *fmu, fmiComponent c, double time, FILE* file, char separator, boolean header);
+void deleteUnzippedFiles();
+void outputRow(FMU *fmu, fmiComponent c, double time, FILE* file, char separator, fmiBoolean header);
 int error(const char* message);
 void printHelp(const char* fmusim);
 char *getTempFmuLocation(); // caller has to free the result

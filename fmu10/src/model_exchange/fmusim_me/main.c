@@ -88,16 +88,17 @@ static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char 
         z    =  (double *) calloc(nz, sizeof(double));
         prez =  (double *) calloc(nz, sizeof(double));
     }
-    if ((!x || !xdot || nz>0) && (!z || !prez)) return error("out of memory");
+    if ((!x || !xdot) || (nz>0 && (!z || !prez))) return error("out of memory");
 
     // open result file
     if (!(file=fopen(RESULT_FILE, "w"))) {
         printf("could not write %s because:\n", RESULT_FILE);
         printf("    %s\n", strerror(errno));
-        if (x!=NULL) free(x);
-        if (xdot!= NULL) free(xdot);
-        if (z!= NULL) free(z);
-        if (prez!= NULL) free(prez);
+        free(x);
+        free(xdot);
+        free(z);
+        free(prez);
+
         return 0; // failure
     }
 
@@ -113,8 +114,8 @@ static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char 
     }
 
     // output solution for time t0
-    outputRow(fmu, c, t0, file, separator, TRUE);  // output column names
-    outputRow(fmu, c, t0, file, separator, FALSE); // output values
+    outputRow(fmu, c, t0, file, separator, fmiTrue);  // output column names
+    outputRow(fmu, c, t0, file, separator, fmiFalse); // output values
 
     // enter the simulation loop
     while (time < tEnd) {
@@ -127,7 +128,7 @@ static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char 
      // advance time
      tPre = time;
      time = min(time+h, tEnd);
-     timeEvent = eventInfo.upcomingTimeEvent && eventInfo.nextEventTime < time;
+     timeEvent = eventInfo.upcomingTimeEvent && eventInfo.nextEventTime <= time;
      if (timeEvent) time = eventInfo.nextEventTime;
      dt = time - tPre; 
      fmiFlag = fmu->setTime(c, time);
@@ -190,7 +191,7 @@ static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char 
         }
 
      } // if event
-     outputRow(fmu, c, time, file, separator, FALSE); // output values for this step
+     outputRow(fmu, c, time, file, separator, fmiFalse); // output values for this step
      nSteps++;
   } // while
 
@@ -202,7 +203,6 @@ static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char 
   if (xdot!= NULL) free(xdot);
   if (z!= NULL) free(z);
   if (prez!= NULL) free(prez);
-
 
   // print simulation summary 
   printf("Simulation from %g to %g terminated successful\n", t0, tEnd);
@@ -216,11 +216,7 @@ static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char 
 }
 
 int main(int argc, char *argv[]) {
-#if WINDOWS
     const char* fmuFileName;
-#else
-    char* fmuFileName;
-#endif
 
     // parse command line arguments and load the FMU
     double tEnd = 1.0;
@@ -243,5 +239,6 @@ int main(int argc, char *argv[]) {
     dlclose(fmu.dllHandle);
 #endif
     freeElement(fmu.modelDescription);
+    deleteUnzippedFiles();
     return EXIT_SUCCESS;
 }

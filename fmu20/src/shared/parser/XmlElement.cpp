@@ -12,29 +12,27 @@
  * ---------------------------------------------------------------------------*/
 
 #include "XmlElement.h"
-#include "XmlParserException.h"
 #include <assert.h>
-#include <cstring>
+#include <map>
+#include <string>
+#include <vector>
+#include "XmlParserException.h"
 
 #ifdef STANDALONE_XML_PARSER
-#define logThis(n, ...) printf(__VA_ARGS__);printf("\n")
+#define logThis(n, ...) printf(__VA_ARGS__); printf("\n")
 #else
-
-extern "C" {
-#include "logging.h" // logThis
-} // closing brace for extern "C"
-
-#endif // STANDALONE_XML_PARSER
+#include "GlobalIncludes.h"
+#include "logging.h"  // logThis
+#endif  // STANDALONE_XML_PARSER
 
 Element::~Element() {
-    for (std::map<XmlParser::Att, char *>::iterator it = attributes.begin(); it != attributes.end(); ++it ) {
+    for (std::map<XmlParser::Att, char *>::const_iterator it = attributes.begin(); it != attributes.end(); ++it) {
         free(it->second);
     }
     attributes.clear();
 }
-template <typename T> void Element::deleteListOfElements(std::vector<T*> list) {
-    // https://stackoverflow.com/questions/3144604/stdvectortiterator-it-doesnt-compile
-    typename std::vector<T*>::iterator it;
+template <typename T> void Element::deleteListOfElements(const std::vector<T *> &list) {
+    typename std::vector<T*>::const_iterator it;
     for (it = list.begin(); it != list.end(); ++it) {
         delete *it;
     }
@@ -47,20 +45,20 @@ void Element::handleElement(XmlParser *parser, const char *childName, int isEmpt
 void Element::printElement(int indent) {
     std::string indentS(indent, ' ');
     logThis(ERROR_INFO, "%s%s", indentS.c_str(), XmlParser::elmNames[type]);
-    for (std::map<XmlParser::Att, char *>::iterator it = attributes.begin(); it != attributes.end(); ++it ) {
+    for (std::map<XmlParser::Att, char *>::const_iterator it = attributes.begin(); it != attributes.end(); ++it) {
         logThis(ERROR_INFO, "%s%s=%s", indentS.c_str(), XmlParser::attNames[it->first], it->second);
     }
 }
-template <typename T> void Element::printListOfElements(int indent, std::vector<T *> list) {
-    typename std::vector<T *>::iterator it;
+template <typename T> void Element::printListOfElements(int indent, const std::vector<T *> &list) {
+    typename std::vector<T*>::const_iterator it;
     for (it = list.begin(); it != list.end(); ++it) {
         (*it)->printElement(indent);
     }
 }
 
 const char *Element::getAttributeValue(XmlParser::Att att) {
-    std::map<XmlParser::Att, char *>::iterator it = attributes.find(att);
-    if(it != attributes.end()) {
+    std::map<XmlParser::Att, char *>::const_iterator it = attributes.find(att);
+    if (it != attributes.end()) {
         return it->second;
     }
     return NULL;
@@ -88,7 +86,7 @@ double Element::getAttributeDouble(XmlParser::Att att, XmlParser::ValueStatus *v
 }
 bool Element::getAttributeBool(XmlParser::Att att, XmlParser::ValueStatus *vs) {
     const char* value = getAttributeValue(att);
-    if (!value) { *vs = XmlParser::valueMissing; return false; };
+    if (!value) {*vs = XmlParser::valueMissing; return false;}
     *vs = XmlParser::valueDefined;
     if (!strcmp(value, "true")) return true;
     if (!strcmp(value, "false")) return false;
@@ -110,7 +108,7 @@ void ListElement::handleElement(XmlParser *parser, const char *childName, int is
         }
         list.push_back(item);
     } else {
-        throw XmlParserException( "Expected '%s' element inside '%s'. Found instead: '%s'.",
+        throw XmlParserException("Expected '%s' element inside '%s'. Found instead: '%s'.",
                 XmlParser::elmNames[XmlParser::elm_Item],
                 XmlParser::elmNames[XmlParser::elm_Enumeration],
                 childName);
@@ -148,7 +146,7 @@ void Unit::handleElement(XmlParser *parser, const char *childName, int isEmptyEl
             parser->parseEndElement();
         }
     } else {
-        throw XmlParserException( "Expected '%s' | '%s' element inside '%s'. Found instead: '%s'.",
+        throw XmlParserException("Expected '%s' | '%s' element inside '%s'. Found instead: '%s'.",
             XmlParser::elmNames[XmlParser::elm_BaseUnit],
             XmlParser::elmNames[XmlParser::elm_DisplayUnit],
             XmlParser::elmNames[XmlParser::elm_SourceFiles],
@@ -172,11 +170,10 @@ SimpleType::~SimpleType() {
 void SimpleType::handleElement(XmlParser *parser, const char *childName, int isEmptyElement) {
     XmlParser::Elm childType = parser->checkElement(childName);
     switch (childType) {
-    case XmlParser::elm_Real:
-    case XmlParser::elm_Integer:
-    case XmlParser::elm_Boolean:
-    case XmlParser::elm_String:
-        {
+        case XmlParser::elm_Real:
+        case XmlParser::elm_Integer:
+        case XmlParser::elm_Boolean:
+        case XmlParser::elm_String: {
             typeSpec = new Element;
             typeSpec->type = childType;
             parser->parseElementAttributes(typeSpec);
@@ -185,8 +182,7 @@ void SimpleType::handleElement(XmlParser *parser, const char *childName, int isE
             }
             break;
         }
-    case XmlParser::elm_Enumeration:
-        {
+        case XmlParser::elm_Enumeration: {
             typeSpec = new ListElement;
             typeSpec->type = childType;
             parser->parseElementAttributes(typeSpec);
@@ -195,9 +191,9 @@ void SimpleType::handleElement(XmlParser *parser, const char *childName, int isE
             }
             break;
         }
-    default:
-        {
-            throw XmlParserException( "Expected '%s' | '%s' | '%s' | '%s' | '%s' element inside '%s'. Found instead: '%s'.",
+        default: {
+            throw XmlParserException(
+                "Expected '%s' | '%s' | '%s' | '%s' | '%s' element inside '%s'. Found instead: '%s'.",
                 XmlParser::elmNames[XmlParser::elm_Real],
                 XmlParser::elmNames[XmlParser::elm_Integer],
                 XmlParser::elmNames[XmlParser::elm_Boolean],
@@ -257,12 +253,11 @@ ScalarVariable::~ScalarVariable() {
 void ScalarVariable::handleElement(XmlParser *parser, const char *childName, int isEmptyElement) {
     XmlParser::Elm childType = parser->checkElement(childName);
     switch (childType) {
-    case XmlParser::elm_Real:
-    case XmlParser::elm_Integer:
-    case XmlParser::elm_Boolean:
-    case XmlParser::elm_String:
-    case XmlParser::elm_Enumeration:
-        {
+        case XmlParser::elm_Real:
+        case XmlParser::elm_Integer:
+        case XmlParser::elm_Boolean:
+        case XmlParser::elm_String:
+        case XmlParser::elm_Enumeration: {
             typeSpec = new Element;
             typeSpec->type = childType;
             parser->parseElementAttributes(typeSpec);
@@ -271,14 +266,12 @@ void ScalarVariable::handleElement(XmlParser *parser, const char *childName, int
             }
             break;
         }
-    case XmlParser::elm_Annotations:
-        {
+        case XmlParser::elm_Annotations: {
             // no attributes expected; this class handles also the Tool
             if (!isEmptyElement) parser->parseChildElements(this);
             break;
         }
-    case XmlParser::elm_Tool:
-        {
+        case XmlParser::elm_Tool: {
             Element *tool = new Element;
             tool->type = childType;
             parser->parseElementAttributes(tool);
@@ -288,9 +281,9 @@ void ScalarVariable::handleElement(XmlParser *parser, const char *childName, int
             annotations.push_back(tool);
             break;
         }
-    default:
-        {
-            throw XmlParserException( "Expected '%s' | '%s' | '%s' | '%s' | '%s' | '%s' | '%s' element inside '%s'. Found instead: '%s'.",
+        default: {
+            throw XmlParserException(
+                "Expected '%s' | '%s' | '%s' | '%s' | '%s' | '%s' | '%s' element inside '%s'. Found instead: '%s'.",
                 XmlParser::elmNames[XmlParser::elm_Real],
                 XmlParser::elmNames[XmlParser::elm_Integer],
                 XmlParser::elmNames[XmlParser::elm_Boolean],
@@ -303,16 +296,16 @@ void ScalarVariable::handleElement(XmlParser *parser, const char *childName, int
         }
     }
 }
-fmiValueReference ScalarVariable::getValueReference() {
+fmi2ValueReference ScalarVariable::getValueReference() {
     XmlParser::ValueStatus vs;
-    fmiValueReference ref = getAttributeUInt(XmlParser::att_valueReference, &vs);
-    assert(vs == XmlParser::valueDefined); // this is a required attribute
+    fmi2ValueReference ref = getAttributeUInt(XmlParser::att_valueReference, &vs);
+    assert(vs == XmlParser::valueDefined);  // this is a required attribute
     return ref;
 }
 XmlParser::Enu ScalarVariable::getVariability() {
     const char *value = getAttributeValue(XmlParser::att_variability);
     if (!value) {
-        return XmlParser::enu_continuous; // default
+        return XmlParser::enu_continuous;  // default
     }
     try {
         return XmlParser::checkEnumValue(value);
@@ -323,7 +316,7 @@ XmlParser::Enu ScalarVariable::getVariability() {
 XmlParser::Enu ScalarVariable::getCausality() {
     const char *value = getAttributeValue(XmlParser::att_causality);
     if (!value) {
-        return XmlParser::enu_local; // default
+        return XmlParser::enu_local;  // default
     }
     try {
         return XmlParser::checkEnumValue(value);
@@ -338,6 +331,9 @@ void ScalarVariable::printElement(int indent) {
     printListOfElements(childIndent, annotations);
 }
 
+ModelStructure::ModelStructure() {
+    unknownParentType = XmlParser::elm_BAD_DEFINED;
+}
 
 ModelStructure::~ModelStructure() {
     deleteListOfElements(outputs);
@@ -369,33 +365,34 @@ void ModelStructure::handleElement(XmlParser *parser, const char *childName, int
                 parser->parseEndElement();
             }
             switch (unknownParentType) {
-            case XmlParser::elm_Outputs:
-                outputs.push_back(unknown);
-                break;
-            case XmlParser::elm_Derivatives:
-                derivatives.push_back(unknown);
-                break;
-            case XmlParser::elm_DiscreteStates:
-                discreteStates.push_back(unknown);
-                break;
-            case XmlParser::elm_InitialUnknowns:
-                initialUnknowns.push_back(unknown);
-                break;
-            default:
-                {
-                    throw XmlParserException( "Element '%s' must be inside of '%s' | '%s' | '%s' | '%s'.",
-                        XmlParser::elmNames[XmlParser::elm_Unknown],
-                        XmlParser::elmNames[XmlParser::elm_Outputs],
-                        XmlParser::elmNames[XmlParser::elm_Derivatives],
-                        XmlParser::elmNames[XmlParser::elm_DiscreteStates],
-                        XmlParser::elmNames[XmlParser::elm_InitialUnknowns]);
-                }
+                case XmlParser::elm_Outputs:
+                    outputs.push_back(unknown);
+                    break;
+                case XmlParser::elm_Derivatives:
+                    derivatives.push_back(unknown);
+                    break;
+                case XmlParser::elm_DiscreteStates:
+                    discreteStates.push_back(unknown);
+                    break;
+                case XmlParser::elm_InitialUnknowns:
+                    initialUnknowns.push_back(unknown);
+                    break;
+                default: {
+                    throw XmlParserException(
+                    "Element '%s' must be inside of '%s' | '%s' | '%s' | '%s'.",
+                    XmlParser::elmNames[XmlParser::elm_Unknown],
+                    XmlParser::elmNames[XmlParser::elm_Outputs],
+                    XmlParser::elmNames[XmlParser::elm_Derivatives],
+                    XmlParser::elmNames[XmlParser::elm_DiscreteStates],
+                    XmlParser::elmNames[XmlParser::elm_InitialUnknowns]);
+}
             }
             break;
         }
     default:
         {
-            throw XmlParserException("Expected '%s' | '%s' | '%s' | '%s' | '%s' element inside '%s'. Found instead: '%s'.",
+            throw XmlParserException(
+                "Expected '%s' | '%s' | '%s' | '%s' | '%s' element inside '%s'. Found instead: '%s'.",
                 XmlParser::elmNames[XmlParser::elm_Outputs],
                 XmlParser::elmNames[XmlParser::elm_Derivatives],
                 XmlParser::elmNames[XmlParser::elm_DiscreteStates],
@@ -574,27 +571,27 @@ void ModelDescription::printElement(int indent) {
 
     if (coSimulation) coSimulation->printElement(childIndent);
     if (modelExchange) modelExchange->printElement(childIndent);
-    for (std::vector<Unit *>::iterator it = unitDefinitions.begin(); it != unitDefinitions.end(); ++it) {
+    for (std::vector<Unit *>::const_iterator it = unitDefinitions.begin(); it != unitDefinitions.end(); ++it) {
         (*it)->printElement(childIndent);
     }
-    for (std::vector<SimpleType *>::iterator it = typeDefinitions.begin(); it != typeDefinitions.end(); ++it) {
+    for (std::vector<SimpleType *>::const_iterator it = typeDefinitions.begin(); it != typeDefinitions.end(); ++it) {
         (*it)->printElement(childIndent);
     }
-    for (std::vector<Element *>::iterator it = logCategories.begin(); it != logCategories.end(); ++it) {
+    for (std::vector<Element *>::const_iterator it = logCategories.begin(); it != logCategories.end(); ++it) {
         (*it)->printElement(childIndent);
     }
     if (defaultExperiment) defaultExperiment->printElement(childIndent);
-    for (std::vector<Element *>::iterator it = vendorAnnotations.begin(); it != vendorAnnotations.end(); ++it) {
+    for (std::vector<Element *>::const_iterator it = vendorAnnotations.begin(); it != vendorAnnotations.end(); ++it) {
         (*it)->printElement(childIndent);
     }
-    for (std::vector<ScalarVariable *>::iterator it = modelVariables.begin(); it != modelVariables.end(); ++it) {
+    for (std::vector<ScalarVariable *>::const_iterator it = modelVariables.begin(); it != modelVariables.end(); ++it) {
         (*it)->printElement(childIndent);
     }
     if (modelStructure) modelStructure->printElement(childIndent);
 }
 
 SimpleType *ModelDescription::getSimpleType(const char *name) {
-    for (std::vector<SimpleType *>::iterator it = typeDefinitions.begin(); it != typeDefinitions.end(); ++it) {
+    for (std::vector<SimpleType *>::const_iterator it = typeDefinitions.begin(); it != typeDefinitions.end(); ++it) {
         const char *typeName = (*it)->getAttributeValue(XmlParser::att_name);
         if (typeName && 0 == strcmp(typeName, name)) {
             return (*it);
@@ -605,7 +602,7 @@ SimpleType *ModelDescription::getSimpleType(const char *name) {
 
 ScalarVariable *ModelDescription::getVariable(const char *name) {
     if (!name) return NULL;
-    for (std::vector<ScalarVariable *>::iterator it = modelVariables.begin(); it != modelVariables.end(); ++it) {
+    for (std::vector<ScalarVariable *>::const_iterator it = modelVariables.begin(); it != modelVariables.end(); ++it) {
         const char *varName = (*it)->getAttributeValue(XmlParser::att_name);
         if (varName && 0 == strcmp(name, varName)) {
             return (*it);

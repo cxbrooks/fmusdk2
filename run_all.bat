@@ -45,7 +45,7 @@ call fmusim cs10 fmu10\fmu\cs\%x64%dq.fmu 1 0.1 0 c %1
 move /Y result.csv result_cs10%x64NAME%_dq.csv
 
 echo -----------------------------------------------------------
-call fmusim me10 fmu10\fmu\me\%x64%inc.fmu 15 15 0 c %1
+call fmusim me10 fmu10\fmu\me\%x64%inc.fmu 15 0.1 0 c %1
 move /Y result.csv result_me10%x64NAME%_inc.csv
 
 echo -----------------------------------------------------------
@@ -53,11 +53,11 @@ call fmusim cs10 fmu10\fmu\cs\%x64%inc.fmu 15 0.5 0 c %1
 move /Y result.csv result_cs10%x64NAME%_inc.csv
 
 echo -----------------------------------------------------------
-call fmusim me10 fmu10\fmu\me\%x64%values.fmu 12 12 0 c %1
+call fmusim me10 fmu10\fmu\me\%x64%values.fmu 12 0.1 0 c %1
 move /Y result.csv result_me10%x64NAME%_values.csv
 
 echo -----------------------------------------------------------
-call fmusim cs10 fmu10\fmu\cs\%x64%values.fmu 12 0.3 0 c %1
+call fmusim cs10 fmu10\fmu\cs\%x64%values.fmu 12 0.1 0 c %1
 move /Y result.csv result_cs10%x64NAME%_values.csv
 
 echo -----------------------------------------------------------
@@ -88,7 +88,7 @@ call fmusim cs20 fmu20\fmu\cs\%x64%dq.fmu 1 0.1 0 c %1
 move /Y result.csv result_cs20%x64NAME%_dq.csv
 
 echo -----------------------------------------------------------
-call fmusim me20 fmu20\fmu\me\%x64%inc.fmu 15 15 0 c %1
+call fmusim me20 fmu20\fmu\me\%x64%inc.fmu 15 0.1 0 c %1
 move /Y result.csv result_me20%x64NAME%_inc.csv
 
 echo -----------------------------------------------------------
@@ -96,11 +96,11 @@ call fmusim cs20 fmu20\fmu\cs\%x64%inc.fmu 15 0.5 0 c %1
 move /Y result.csv result_cs20%x64NAME%_inc.csv
 
 echo -----------------------------------------------------------
-call fmusim me20 fmu20\fmu\me\%x64%values.fmu 12 12 0 c %1
+call fmusim me20 fmu20\fmu\me\%x64%values.fmu 12 0.1 0 c %1
 move /Y result.csv result_me20%x64NAME%_values.csv
 
 echo -----------------------------------------------------------
-call fmusim cs20 fmu20\fmu\cs\%x64%values.fmu 12 0.3 0 c %1
+call fmusim cs20 fmu20\fmu\cs\%x64%values.fmu 12 0.1 0 c %1
 move /Y result.csv result_cs20%x64NAME%_values.csv
 
 endlocal

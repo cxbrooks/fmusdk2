@@ -1,21 +1,21 @@
 <html>
 <head>
-    <title>Documentation for FMU SDK 2.0.1</title>
+    <title>Documentation for FMU SDK 2.0.3</title>
 <style type="text/css">
   html { font-family: Verdana, Arial, Helvetica, sans-serif; }
   h1,h2,h3  { color: #000066; }
 </style>
 </head>
 <body>
-  <h1>FMU SDK 2.0.1</h1>
+  <h1>FMU SDK 2.0.3</h1>
   The FMU SDK is a free software development kit provided by
     <a href="http://www.qtronic.de" target="_blank">QTronic</a>.
     The FMU SDK demonstrates basic use of Functional Mockup Units (FMUs)
     as defined by the following specifications
     <ul>
     <li>Functional Mock-up Interface for <a href=
-    "https://svn.modelica.org/fmi/branches/public/specifications/FMI_for_ModelExchange_and_CoSimulation_v2.0_RC1.pdf" 
-    target="_blank">Model Exchange and Co-Simulation 2.0 RC1</a> (October 18, 2013)</li>
+    "https://svn.modelica.org/fmi/branches/public/specifications/FMI_for_ModelExchange_and_CoSimulation_v2.0.pdf"
+    target="_blank">Model Exchange and Co-Simulation 2.0</a> (July 25, 2014)</li>
     <li>Functional Mock-up Interface for <a href=
     "https://svn.modelica.org/fmi/branches/public/specifications/FMI_for_ModelExchange_v1.0.pdf" 
     target="_blank">Model Exchange 1.0</a> (January 26, 2010)</li>
@@ -26,17 +26,17 @@
     The FMI specifications are available from 
     <a href="https://fmi-standard.org/downloads" target="_blank">here</a>.
     A short overview on FMUs and the FMI specification can be found
-    <a href="http://www.qtronic.de/doc/fmi_overview.pdf" taget="_blank">here</a>.
+    <a href="http://www.qtronic.de/doc/fmi_overview.pdf" target="_blank">here</a>.
     The FMU SDK can also serve as starting point for developing applications 
     that create or process FMUs.
     <p>
-    For each of the supported FMI versions (currently 1.0 and 2.0 RC1), 
+    For each of the supported FMI versions (currently 1.0 and 2.0), 
     the FMU SDK contains the C sources for various discrete and continuous 
     FMU models, a batch file for compiling and zip'ing these models, 
     an XML parser for parsing the model description of an FMU and two simple 
     simulation programs that run a given FMU and output the result as CSV file.
     <p>
-    The FMU SDK can be downloaded from 
+    The FMU SDK 2.0.3 can be downloaded from 
     <a href="http://www.qtronic.de/doc/fmusdk.zip">
         http://www.qtronic.de/doc/fmusdk.zip</a>. 
     For bug reports, questions or comments regarding the FMU SDK, please
@@ -142,7 +142,7 @@ The name of the new directory and of the .c file must be the same.
 The content of the .c file should follow the existing FMU examples, see the comments in the example code. 
 For FMI 1.0, add also file modelDescription.xml.
 The XML file must not contain the <code>&lt;implementation&gt;</code>
-element and the closing <code>&lt/fmiModelDescription&gt;</code> tag, because this is added automatically during build. 
+element and the closing <code>&lt;fmiModelDescription&gt;</code> tag, because this is added automatically during build. 
 For FMI 2.0, add file modelDescription_cs.xml and modelDescription_cs.xml.
 When done with editing xy.c and the xml file (or files), open a command shell in FMUSDK_HOME\fmu10\src\models 
 or in FMUSDK_HOME\fmu20\src\models and run the 
@@ -156,7 +156,9 @@ It shows all XML elements (without attributes) used in the schema files (XSD) fo
 model exchange and co-simulation 1.0. Notation: UML class diagram.
 <img src="fmu10-xml-schema.png">
 <br/>
-For the case of FMU 2.0, see the corresponding overview figure in the FMI specification 2.0 RC1.
+For the case of FMU 2.0, see the corresponding overview figure in the
+<a href="https://svn.modelica.org/fmi/branches/public/specifications/FMI_for_ModelExchange_and_CoSimulation_v2.0.pdf"
+target="_blank">FMI specification 2.0</a>.
 <hr />
 
 <h2><a name="revisions">FMU SDK Revision history</a></h2>
@@ -194,12 +196,28 @@ For the case of FMU 2.0, see the corresponding overview figure in the FMI specif
 </li>
 <li>16.04.2014, Version 2.0.1
     <ul>
-        <li>bug fix in modelDescription.xml files: remove alias parameter, add derivative attribute to suitable variables</li>
-        <li>bug fix in fmu20/fmuTemplate.c: allow modules to request termination of simulation, better time event
+        <li>bug-fix in modelDescription.xml files: remove alias parameter, add derivative attribute to suitable variables</li>
+        <li>bug-fix in fmu20/fmuTemplate.c: allow modules to request termination of simulation, better time event
             handling, initialize() moved from fmiEnterInitialization to fmiExitInitialization, correct logging message
             format in fmiDoStep</li>
-        <li>bug fix in Co-Simulation and Model Exchange simulators: set fmu location for 1.0 and fmu resources location
+        <li>bug-fix in Co-Simulation and Model Exchange simulators: set fmu location for 1.0 and fmu resources location
             for 2.0 at instantiation of model</li>
+    </ul>
+</li>
+<li>02.07.2014, Version 2.0.2
+    <ul>
+        <li>added support for FMI 2.0 RC2</li>
+        <li>remove support for exporting FMI 2.0 RC1. Co-Simulation and Model Exchange simulators still support FMI 2.0 RC1</li>
+        <li>fmi2setDebugLogging called with 0 categories, set all categories to loggingOn value</li>
+    </ul>
+</li>
+<li>27.08.2014, Version 2.0.3
+    <ul>
+        <li>track all states of Model-exchange and Co-simulation and check the allowed calling sequences for FMI 2.0</li>
+        <li>added explicit 'isTimeEvent' parameter for eventUpdate function in the user's models</li>
+        <li>lazy computation of computed values</li>
+        <li>bug-fix in modelDescription.xml: set initial attribute to local and output variables,
+        add unknown variables in &lt;ModelStructure&gt;&lt;InitialUnknowns&gt; section</li>
     </ul>
 </li>
 </ul>

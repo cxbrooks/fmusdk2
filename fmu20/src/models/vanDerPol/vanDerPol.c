@@ -38,22 +38,27 @@
 // define state vector as vector of value references
 #define STATES { x0_, x1_ }
 
-// called by fmiInstantiate
+// called by fmi2Instantiate
 // Set values for all variables that define a start value
-// Settings used unless changed by fmiSetX before fmiEnterInitializationMode
-FMI_Export void setStartValues(ModelInstance *comp) {
+// Settings used unless changed by fmi2SetX before fmi2EnterInitializationMode
+void setStartValues(ModelInstance *comp) {
     r(x0_) = 2;
     r(x1_) = 0;
     r(mu_) = 1;
 }
 
-// called by fmiExitInitializationMode() after setting eventInfo to defaults
-// Used to set the first time event, if any.
-FMI_Export void initialize(ModelInstance* comp, fmiEventInfo* eventInfo) {
+// called by fmi2GetReal, fmi2GetInteger, fmi2GetBoolean, fmi2GetString, fmi2ExitInitialization
+// if setStartValues or environment set new values through fmi2SetXXX.
+// Lazy set values for all variable that are computed from other variables.
+void calculateValues(ModelInstance *comp) {
+    //if (comp->state == modelInitializationMode) {
+    //  initialization code here
+    //  set first time event, if any, using comp->eventInfo.nextEventTime
+    //}
 }
 
-// called by fmiGetReal, fmiGetContinuousStates and fmiGetDerivatives
-FMI_Export fmiReal getReal(ModelInstance* comp, fmiValueReference vr){
+// called by fmi2GetReal, fmi2GetContinuousStates and fmi2GetDerivatives
+fmi2Real getReal(ModelInstance* comp, fmi2ValueReference vr){
     switch (vr) {
         case x0_     : return r(x0_);
         case x1_     : return r(x1_);
@@ -65,10 +70,8 @@ FMI_Export fmiReal getReal(ModelInstance* comp, fmiValueReference vr){
 }
 
 // used to set the next time event, if any.
-FMI_Export void eventUpdate(fmiComponent comp, fmiEventInfo* eventInfo) {
+void eventUpdate(ModelInstance *comp, fmi2EventInfo *eventInfo, int isTimeEvent) {
 } 
 
 // include code that implements the FMI based on the above definitions
 #include "fmuTemplate.c"
-
-

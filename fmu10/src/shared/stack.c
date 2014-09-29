@@ -1,12 +1,16 @@
+/*
+ * Copyright QTronic GmbH. All rights reserved.
+ */
+
 /* -------------------------------------------------------------------------
  * stack.c
  * A stack of pointers.
- * Copyright QTronic GmbH. All rights reserved.
+ * Author: Jakob Mauss
  * -------------------------------------------------------------------------*/
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include "stack.h"
 
 Stack* stackNew(int initialSize, int inc){
@@ -64,7 +68,7 @@ void** stackLastPopedAsArray0(Stack* s, int n){
 }
 
 // return stack as possibly empty array, or NULL if memory allocation fails
-// On sucessful return, the stack is empty.
+// On successful return, the stack is empty.
 void** stackPopAllAsArray(Stack* s, int *size) {
     int i;
     void** array = (void**)malloc((s->stackPos + 1)*sizeof(void*));

@@ -75,8 +75,8 @@ static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char 
     if (fmiFlag > fmiWarning)  return error("could not initialize model");
     
     // output solution for time t0
-    outputRow(fmu, c, tStart, file, separator, TRUE);  // output column names
-    outputRow(fmu, c, tStart, file, separator, FALSE); // output values
+    outputRow(fmu, c, tStart, file, separator, fmiTrue);  // output column names
+    outputRow(fmu, c, tStart, file, separator, fmiFalse); // output values
 
     // enter the simulation loop
     time = tStart;
@@ -84,14 +84,13 @@ static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char 
         fmiFlag = fmu->doStep(c, time, h, fmiTrue);
         if (fmiFlag != fmiOK)  return error("could not complete simulation of the model");
         time += h;
-        outputRow(fmu, c, time, file, separator, FALSE); // output values for this step
+        outputRow(fmu, c, time, file, separator, fmiFalse); // output values for this step
         nSteps++;
     }
 
     // end simulation
     fmiFlag = fmu->terminateSlave(c);
     fmu->freeSlaveInstance(c);
-
     fclose(file);
 
     // print simulation summary 
@@ -102,11 +101,8 @@ static int simulate(FMU* fmu, double tEnd, double h, fmiBoolean loggingOn, char 
 }
 
 int main(int argc, char *argv[]) {
-#if WINDOWS
     const char* fmuFileName;
-#else
-    char* fmuFileName;
-#endif
+
     // parse command line arguments and load the FMU
     double tEnd = 1.0;
     double h=0.1;
@@ -128,6 +124,7 @@ int main(int argc, char *argv[]) {
     dlclose(fmu.dllHandle);
 #endif
     freeElement(fmu.modelDescription);
+    deleteUnzippedFiles();
     return EXIT_SUCCESS;
 }
 

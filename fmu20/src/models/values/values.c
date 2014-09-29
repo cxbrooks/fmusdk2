@@ -36,33 +36,37 @@
 // define state vector as vector of value references
 #define STATES { x_ }
 
-const char* month[] = {
+const char *month[] = {
     "jan","feb","march","april","may","june","july",
     "august","sept","october","november","december"
 };
 
-// called by fmiInstantiate
+// called by fmi2Instantiate
 // Set values for all variables that define a start value
-// Settings used unless changed by fmiSetX before fmiEnterInitializationMode
-FMI_Export void setStartValues(ModelInstance *comp) {
+// Settings used unless changed by fmi2SetX before fmi2EnterInitializationMode
+void setStartValues(ModelInstance *comp) {
     r(x_) = 1;
     i(int_in_) = 2;
     i(int_out_) = 0;
-    b(bool_in_) = fmiTrue;
-    b(bool_out_) = fmiFalse;
-    copy(string_in_, "a string");
+    b(bool_in_) = fmi2True;
+    b(bool_out_) = fmi2False;
+    copy(string_in_, "QTronic");
     copy(string_out_, month[0]);
 }
 
-// called by fmiExitInitializationMode() after setting eventInfo to defaults
-// Used to set the first time event, if any.
-FMI_Export void initialize(ModelInstance* comp, fmiEventInfo* eventInfo) {
-    eventInfo->nextEventTimeDefined = fmiTrue;
-    eventInfo->nextEventTime        = 1 + comp->time;
+// called by fmi2GetReal, fmi2GetInteger, fmi2GetBoolean, fmi2GetString, fmi2ExitInitialization
+// if setStartValues or environment set new values through fmi2SetXXX.
+// Lazy set values for all variable that are computed from other variables.
+void calculateValues(ModelInstance *comp) {
+    if (comp->state == modelInitializationMode) {
+        // set first time event
+        comp->eventInfo.nextEventTimeDefined = fmi2True;
+        comp->eventInfo.nextEventTime        = 1 + comp->time;
+    }
 }
 
-// called by fmiGetReal, fmiGetContinuousStates and fmiGetDerivatives
-FMI_Export fmiReal getReal(ModelInstance* comp, fmiValueReference vr){
+// called by fmi2GetReal, fmi2GetContinuousStates and fmi2GetDerivatives
+fmi2Real getReal(ModelInstance *comp, fmi2ValueReference vr){
     switch (vr) {
         case x_     : return   r(x_);
         case der_x_ : return - r(x_);
@@ -71,15 +75,16 @@ FMI_Export fmiReal getReal(ModelInstance* comp, fmiValueReference vr){
 }
 
 // used to set the next time event, if any.
-FMI_Export void eventUpdate(ModelInstance* comp, fmiEventInfo* eventInfo) {
-    eventInfo->nextEventTimeDefined = fmiTrue;
-    eventInfo->nextEventTime        = 1 + comp->time;
-    i(int_out_) += 1;
-    b(bool_out_) = !b(bool_out_);
-    if (i(int_out_)<12) copy(string_out_, month[i(int_out_)]);
-    else eventInfo->terminateSimulation = fmiTrue;
+void eventUpdate(ModelInstance *comp, fmi2EventInfo *eventInfo, int isTimeEvent) {
+    if (isTimeEvent) {
+        eventInfo->nextEventTimeDefined = fmi2True;
+        eventInfo->nextEventTime        = 1 + comp->time;
+        i(int_out_) += 1;
+        b(bool_out_) = !b(bool_out_);
+        if (i(int_out_) < 12) copy(string_out_, month[i(int_out_)]);
+        else eventInfo->terminateSimulation = fmi2True;
+    }
 }
 
 // include code that implements the FMI based on the above definitions
 #include "fmuTemplate.c"
-

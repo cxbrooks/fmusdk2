@@ -37,10 +37,9 @@ goto noCompiler
 
 set SRC=main.c ..\shared\sim_support.c ..\shared\parser\XmlParser.cpp ..\shared\parser\XmlElement.cpp ..\shared\parser\XmlParserCApi.cpp
 set INC=/I..\shared\include /I..\shared /I..\shared\parser
-set OPTIONS=/DFMI_COSIMULATION /wd4090 /nologo /EHsc /DSTANDALONE_XML_PARSER /DLIBXML_STATIC
+set OPTIONS=/DFMI_COSIMULATION /nologo /EHsc /DSTANDALONE_XML_PARSER /DLIBXML_STATIC
 
 rem create fmu20sim_cs.exe in co_simulation dir
-rem /wd4090 to disable warnings about different 'const' qualifiers
 pushd co_simulation
 cl %SRC% %INC% %OPTIONS% /Fefmu20sim_cs.exe /link /LIBPATH:..\shared\parser\%x64%
 del *.obj

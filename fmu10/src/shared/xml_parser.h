@@ -1,8 +1,12 @@
+/*
+ * Copyright QTronic GmbH. All rights reserved.
+ */
+
 /* -------------------------------------------------------------------------
  * xml_parser.h
  * A parser for file modelVariables.xml of an FMU.
  * Supports "FMI for Model Exchange 1.0" and "FMI for Co-Simulation 1.0".
- * Copyright QTronic GmbH. All rights reserved.
+ * Author: Jakob Mauss, January 2010. 
  * -------------------------------------------------------------------------*/
 
 #ifndef xml_parser_h
@@ -14,11 +18,16 @@
 #include "expat.h"
 #include "stack.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef fmiModelTypes_h
 #ifndef fmiPlatformTypes_h
 typedef unsigned int fmiValueReference;
 #endif
 #endif
+
 #define fmiUndefinedValueReference (fmiValueReference)(-1)
 
 #define SIZEOF_ELM 31
@@ -30,8 +39,9 @@ extern const char *attNames[SIZEOF_ATT];
 #define SIZEOF_ENU 13
 extern const char *enuNames[SIZEOF_ENU];
 
-// Elements
+// Attributes
 typedef enum {
+    elm_BAD_DEFINED = -1,
     elm_fmiModelDescription,elm_UnitDefinitions,elm_BaseUnit,elm_DisplayUnitDefinition,elm_TypeDefinitions,
     elm_Type,elm_RealType,elm_IntegerType,elm_BooleanType,elm_StringType,elm_EnumerationType,elm_Item,
     elm_DefaultExperiment,elm_VendorAnnotations,elm_Tool,elm_Annotation,elm_ModelVariables,elm_ScalarVariable,
@@ -41,18 +51,20 @@ typedef enum {
 
 // Attributes
 typedef enum {
-  att_fmiVersion,att_displayUnit,att_gain,att_offset,att_unit,att_name,att_description,att_quantity,att_relativeQuantity,
-  att_min,att_max,att_nominal,att_declaredType,att_start,att_fixed,att_startTime,att_stopTime,att_tolerance,att_value,
-  att_valueReference,att_variability,att_causality,att_alias,att_modelName,att_modelIdentifier,att_guid,att_author,
-  att_version,att_generationTool,att_generationDateAndTime,att_variableNamingConvention,att_numberOfContinuousStates,
-  att_numberOfEventIndicators,att_input,
-  att_canHandleVariableCommunicationStepSize,att_canHandleEvents,att_canRejectSteps,att_canInterpolateInputs,
-  att_maxOutputDerivativeOrder,att_canRunAsynchronuously,att_canSignalEvents,att_canBeInstantiatedOnlyOncePerProcess,
-  att_canNotUseMemoryManagementFunctions,att_entryPoint,att_manualStart,att_type
+    att_BAD_DEFINED = -1,
+    att_fmiVersion,att_displayUnit,att_gain,att_offset,att_unit,att_name,att_description,att_quantity,att_relativeQuantity,
+    att_min,att_max,att_nominal,att_declaredType,att_start,att_fixed,att_startTime,att_stopTime,att_tolerance,att_value,
+    att_valueReference,att_variability,att_causality,att_alias,att_modelName,att_modelIdentifier,att_guid,att_author,
+    att_version,att_generationTool,att_generationDateAndTime,att_variableNamingConvention,att_numberOfContinuousStates,
+    att_numberOfEventIndicators,att_input,
+    att_canHandleVariableCommunicationStepSize,att_canHandleEvents,att_canRejectSteps,att_canInterpolateInputs,
+    att_maxOutputDerivativeOrder,att_canRunAsynchronuously,att_canSignalEvents,att_canBeInstantiatedOnlyOncePerProcess,
+    att_canNotUseMemoryManagementFunctions,att_entryPoint,att_manualStart,att_type
 } Att;
 
 // Enumeration values
 typedef enum {
+    enu_BAD_DEFINED = -1,
     enu_flat,enu_structured,enu_constant,enu_parameter,enu_discrete,enu_continuous,
     enu_input,enu_output,enu_internal,enu_none,enu_noAlias,enu_alias,enu_negatedAlias
 } Enu;
@@ -61,35 +73,36 @@ typedef enum {
 // DisplayUnitDefinition, RealType, IntegerType, BooleanType, StringType, DefaultExperiment,
 // Item, Annotation, Name, Real, Integer, Boolean, String, Enumeration, Capabilities, File
 typedef struct {
-    Elm type;                // element type
+    Elm type;          // element type
     const char** attributes; // null or n attribute value strings
-    int n;                   // size of attributes, even number
+    int n;             // size of attributes, even number
 } Element;
 
-// AST node for element that has a list of elements
+// AST node for element that has a list of elements 
 // BaseUnit, EnumerationType, Tool, DirectDependency, Model
 typedef struct {
-    Elm type;                // element type
+    Elm type;          // element type
     const char** attributes; // null or n attribute value strings
-    int n;                   // size of attributes, even number
-    Element** list;          // null-terminated array of pointers to elements, not null
+    int n;             // size of attributes, even number
+    Element** list;    // null-terminated array of pointers to elements, not null
 } ListElement;
 
 // AST node for element Type
 typedef struct {
-    Elm type;                // element type
+    Elm type;          // element type
     const char** attributes; // null or n attribute value strings
-    int n;                   // size of attributes, an even number
-    Element* typeSpec;       // one of RealType, IntegerType etc.
+    int n;             // size of attributes, an even number
+    Element* typeSpec; // one of RealType, IntegerType etc.
 } Type;
 
 // AST node for element ScalarVariable
 typedef struct {
-    Elm type;                // element type
+    Elm type;          // element type
     const char** attributes; // null or n attribute value strings
-    int n;                   // size of attributes, even number
-    Element* typeSpec;       // one of Real, Integer, etc
+    int n;             // size of attributes, even number
+    Element* typeSpec; // one of Real, Integer, etc
     Element** directDependencies; // null or null-terminated list of Name
+    int  modelIdx;     // only used in fmu10
 } ScalarVariable;
 
 // AST node for element CoSimulation_StandAlone and CoSimulation_Tool
@@ -116,7 +129,7 @@ typedef struct {
 
 // types of AST nodes used to represent an element
 typedef enum { 
-    astElement, 
+    astElement,
     astListElement,
     astType,
     astScalarVariable,
@@ -125,7 +138,7 @@ typedef enum {
 } AstNodeType;
 
 // Possible results when retrieving an attribute value from an element
-typedef enum {
+typedef enum { 
     valueMissing,
     valueDefined,
     valueIllegal
@@ -141,7 +154,7 @@ char getBoolean      (void* element, Att a, ValueStatus* vs);
 Enu getEnumValue     (void* element, Att a, ValueStatus* vs);
 void freeElement     (void* element);
 
-// Convenience methods for AST access. To be used after successful validation only.
+// Convenience methods for AST access. To be used afer successful validation only.
 const char* getModelIdentifier(ModelDescription* md);
 int getNumberOfStates(ModelDescription* md);
 int getNumberOfEventIndicators(ModelDescription* md);
@@ -157,7 +170,10 @@ const char* getString2(ModelDescription* md, void* sv, Att a);
 const char * getDescription(ModelDescription* md, ScalarVariable* sv);
 const char * getVariableAttributeString(ModelDescription* md, fmiValueReference vr, Elm type, Att a);
 double getVariableAttributeDouble(ModelDescription* md, fmiValueReference vr, Elm type, Att a, ValueStatus* vs);
+//double getNominal(ModelDescription* md, ScalarVariable* sv);
 double getNominal(ModelDescription* md, fmiValueReference vr);
 
+#ifdef __cplusplus
+} // closing brace for extern "C"
+#endif
 #endif // xml_parser_h
-

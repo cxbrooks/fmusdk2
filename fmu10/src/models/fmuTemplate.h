@@ -20,8 +20,9 @@
 #define  b(vr) comp->b[vr]
 #define  s(vr) comp->s[vr]
 #define pos(z) comp->isPositive[z]
-fmiStatus setString(fmiComponent comp, fmiValueReference vr, fmiString value);
 #define copy(vr, value) setString(comp, vr, value)
+
+fmiStatus setString(fmiComponent comp, fmiValueReference vr, fmiString value);
 
 #define not_modelError (modelInstantiated|modelInitialized|modelTerminated)
 

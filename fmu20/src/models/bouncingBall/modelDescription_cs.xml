@@ -17,20 +17,21 @@
 </LogCategories>
 
 <ModelVariables>
-  <ScalarVariable name="h" valueReference="0" description="height, used as state" initial="exact">
+  <ScalarVariable name="h" valueReference="0" description="height, used as state"
+                  causality="local" variability="continuous" initial="exact">
     <Real start="1"/>
   </ScalarVariable>
-  <ScalarVariable name="der(h)" valueReference="1" description="velocity of ball">
-    <Real
-      derivative="1"/>
+  <ScalarVariable name="der(h)" valueReference="1" description="velocity of ball"
+                  causality="local" variability="continuous" initial="calculated">
+    <Real derivative="1"/>
   </ScalarVariable>
-  <ScalarVariable name="v" valueReference="2" description="velocity of ball, used as state">
-    <Real
-      reinit="true"/>
+  <ScalarVariable name="v" valueReference="2" description="velocity of ball, used as state"
+                  causality="local" variability="continuous" initial="exact">
+    <Real start="0" reinit="true"/>
   </ScalarVariable>
-  <ScalarVariable name="der(v)" valueReference="3" description="acceleration of ball">
-    <Real
-      derivative="3"/>
+  <ScalarVariable name="der(v)" valueReference="3" description="acceleration of ball"
+                  causality="local" variability="continuous" initial="calculated">
+    <Real derivative="3"/>
   </ScalarVariable>
   <ScalarVariable name="g" valueReference="4" description="acceleration of gravity"
                   causality="parameter" variability="fixed" initial="exact">
@@ -43,13 +44,14 @@
 </ModelVariables>
 
 <ModelStructure>
-  <Outputs/>
   <Derivatives>
     <Unknown index="2" />
     <Unknown index="4" />
   </Derivatives>
-  <DiscreteStates />
-  <InitialUnknowns />
+  <InitialUnknowns>
+    <Unknown index="2"/>
+    <Unknown index="4"/>
+  </InitialUnknowns>
 </ModelStructure>
 
 </fmiModelDescription>

@@ -37,10 +37,9 @@ goto noCompiler
 
 set SRC=main.c ..\shared\sim_support.c ..\shared\parser\XmlParser.cpp ..\shared\parser\XmlElement.cpp ..\shared\parser\XmlParserCApi.cpp
 set INC=/I..\shared\include /I..\shared /I..\shared\parser
-set OPTIONS=/wd4090 /nologo /EHsc /DSTANDALONE_XML_PARSER /DLIBXML_STATIC
+set OPTIONS= /nologo /EHsc /DSTANDALONE_XML_PARSER /DLIBXML_STATIC
 
 rem create fmu20sim_me.exe in the model_exchange dir
-rem /wd4090 to disable warnings about different 'const' qualifiers
 pushd model_exchange
 cl %SRC% %INC% %OPTIONS% /Fefmu20sim_me.exe /link /LIBPATH:..\shared\parser\%x64%
 del *.obj

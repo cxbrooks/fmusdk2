@@ -187,12 +187,11 @@ static void* getAdr(int* s, FMU *fmu, const char* functionName){
     fp = dlsym(fmu->dllHandle, name);
 #endif
     if (!fp) {
-        printf ("warning: Function %s not found in %s\n", name, DLL_SUFFIX);
+        printf ("warning: Function %s not found in dll\n", name);
 #ifdef _MSC_VER
 #else
         printf ("Error was: %s\n", dlerror());
 #endif 
-        printf ("If some symbols are found, but not others, check LD_LIBRARY_PATH or DYLD_LIBRARYPATH\n");
         *s = 0; // mark dll load as 'failed'
     }
     return fp;
@@ -201,10 +200,7 @@ static void* getAdr(int* s, FMU *fmu, const char* functionName){
 // Load the given dll and set function pointers in fmu
 // Return 0 to indicate failure
 static int loadDll(const char* dllPath, FMU *fmu) {
-    int s = 1;
-#ifdef FMI_COSIMULATION
-    int x = 1;
-#endif
+    int x = 1, s = 1;
 #ifdef _MSC_VER
     HANDLE h = LoadLibrary(dllPath);
 #else
@@ -329,6 +325,14 @@ void loadFMU(const char* fmuFileName) {
     free(tmpPath);
 }
 
+void deleteUnzippedFiles() {
+    const char *fmuTempPath = getTmpPath();
+    char *cmd = (char *)calloc(15 + strlen(fmuTempPath), sizeof(char));
+    sprintf(cmd, "rmdir /S /Q %s", fmuTempPath);
+    system(cmd);
+    free(cmd);
+}
+
 static void doubleToCommaString(char* buffer, double r){
     char* comma;
     sprintf(buffer, "%.16g", r);
@@ -340,7 +344,7 @@ static void doubleToCommaString(char* buffer, double r){
 // if separator is ',', columns are separated by ',' and '.' is used for floating-point numbers.
 // otherwise, the given separator (e.g. ';' or '\t') is to separate columns, and ',' is used
 // as decimal dot in floating-point numbers.
-void outputRow(FMU *fmu, fmiComponent c, double time, FILE* file, char separator, boolean header) {
+void outputRow(FMU *fmu, fmiComponent c, double time, FILE* file, char separator, fmiBoolean header) {
     int k;
     fmiReal r;
     fmiInteger i;
@@ -363,7 +367,7 @@ void outputRow(FMU *fmu, fmiComponent c, double time, FILE* file, char separator
         }
     }
 
-    // print all other columns
+    // print all other columns(void *)
     for (k=0; vars[k]; k++) {
         ScalarVariable* sv = vars[k];
         if (getAlias(sv)!=enu_noAlias) continue;
@@ -371,7 +375,7 @@ void outputRow(FMU *fmu, fmiComponent c, double time, FILE* file, char separator
             // output names only
             if (separator==',') {
                 // treat array element, e.g. print a[1, 2] as a[1.2]
-                char* s = strdup(getName(sv));
+                const char* s = getName(sv);
                 fprintf(file, "%c", separator);
                 while (*s) {
                    if (*s!=' ') fprintf(file, "%c", *s==',' ? '.' : *s);
@@ -444,6 +448,7 @@ static ScalarVariable* getSV(FMU* fmu, char type, fmiValueReference vr) {
         case 'i': tp = elm_Integer; break;
         case 'b': tp = elm_Boolean; break;
         case 's': tp = elm_String;  break;
+        default:  tp = elm_BAD_DEFINED; break;
     }
     for (i=0; vars[i]; i++) {
         ScalarVariable* sv = vars[i];
@@ -515,6 +520,7 @@ void fmuLogger(fmiComponent c, fmiString instanceName, fmiStatus status,
     // replace C format strings
     va_start(argp, message);
     vsprintf(msg, message, argp);
+    va_end(argp);
 
     // replace e.g. ## and #r12#  
     copy = strdup(msg);
@@ -532,7 +538,7 @@ int error(const char* message){
     return 0;
 }
 
-void parseArguments(int argc, char *argv[], char** fmuFileName, double* tEnd, double* h, int* loggingOn, char* csv_separator) {
+void parseArguments(int argc, char *argv[], const char** fmuFileName, double* tEnd, double* h, int* loggingOn, char* csv_separator) {
     // parse command line arguments
     if (argc>1) {
         *fmuFileName = argv[1];

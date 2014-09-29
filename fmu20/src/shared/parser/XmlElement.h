@@ -14,34 +14,35 @@
 #ifndef XML_ELEMENT_H
 #define XML_ELEMENT_H
 
+#include <map>
+#include <vector>
 #include "XmlParser.h"
-#include "string"
-#include "vector"
-#include "map"
 
 class Element {
-public:
-    XmlParser::Elm type; // element type
-    std::map<XmlParser::Att, char*> attributes; // map with key one of XmlParser::Att
-public:
+ public:
+    XmlParser::Elm type;  // element type
+    std::map<XmlParser::Att, char*> attributes;  // map with key one of XmlParser::Att
+
+ public:
     virtual ~Element();
     virtual void handleElement(XmlParser *parser, const char *childName, int isEmptyElement);
     virtual void printElement(int indent);
-    const char *getAttributeValue(XmlParser::Att att); // value or NULL if not present
+    const char *getAttributeValue(XmlParser::Att att);  // value or NULL if not present
     int getAttributeInt(XmlParser::Att att, XmlParser::ValueStatus *vs);
     unsigned int getAttributeUInt(XmlParser::Att att, XmlParser::ValueStatus *vs);
     double getAttributeDouble(XmlParser::Att att, XmlParser::ValueStatus *vs);
     bool getAttributeBool(XmlParser::Att att, XmlParser::ValueStatus *vs);
 
-    template <typename T> void printListOfElements(int indent, std::vector<T *> list);
-    template <typename T> void deleteListOfElements(std::vector<T *> list);
+    template <typename T> void printListOfElements(int indent, const std::vector<T *> &list);
+    template <typename T> void deleteListOfElements(const std::vector<T *> &list);
 };
 
 
 class ListElement : public Element {
-public:
-    std::vector<Element*> list; // list of Element
-public:
+ public:
+    std::vector<Element*> list;  // list of Element
+
+ public:
     ~ListElement();
     void handleElement(XmlParser *parser, const char *childName, int isEmptyElement);
     void printElement(int indent);
@@ -49,11 +50,11 @@ public:
 
 
 class Unit : public Element {
-public:
-    std::vector<Element *> displayUnits; // list of DisplayUnit
-    Element *baseUnit;                   // null or BaseUnit
+ public:
+    std::vector<Element *> displayUnits;  // list of DisplayUnit
+    Element *baseUnit;                    // null or BaseUnit
 
-public:
+ public:
     Unit();
     ~Unit();
     void handleElement(XmlParser *parser, const char *childName, int isEmptyElement);
@@ -62,9 +63,10 @@ public:
 
 
 class SimpleType : public Element {
-public:
-    Element *typeSpec; // one of RealType, IntegerType etc.
-public:
+ public:
+    Element *typeSpec;  // one of RealType, IntegerType etc.
+
+ public:
     SimpleType();
     ~SimpleType();
     void handleElement(XmlParser *parser, const char *childName, int isEmptyElement);
@@ -73,10 +75,10 @@ public:
 
 
 class Component : public Element {
-public:
-    std::vector<Element *> files; // list of File. Only meaningful for source code FMUs (not .dll).
+ public:
+    std::vector<Element *> files;  // list of File. Only meaningful for source code FMUs (not .dll).
 
-public:
+ public:
     ~Component();
     void handleElement(XmlParser *parser, const char *childName, int isEmptyElement);
     void printElement(int indent);
@@ -84,18 +86,18 @@ public:
 
 
 class ScalarVariable : public Element {
-public :
-    Element *typeSpec; // one of Real, Integer, etc
-    std::vector<Element *> annotations; // list of Annotations
-    //int modelIdx;                // only used in fmu10
+ public :
+    Element *typeSpec;                   // one of Real, Integer, etc
+    std::vector<Element *> annotations;  // list of Annotations
+    // int modelIdx;                     // only used in fmu10
 
-public:
+ public:
     ScalarVariable();
     ~ScalarVariable();
     void handleElement(XmlParser *parser, const char *childName, int isEmptyElement);
     void printElement(int indent);
     // get the valueReference of current variable. This attribute is mandatory for a variable.
-    fmiValueReference getValueReference();
+    fmi2ValueReference getValueReference();
     // returns one of constant, fixed, tunable, discrete, continuous.
     // If value is missing, the default continuous is returned.
     // If unknown value, return enu_BAD_DEFINED.
@@ -108,33 +110,36 @@ public:
 
 
 class ModelStructure : public Element {
-private:
-    XmlParser::Elm unknownParentType; // used in handleElement to know in which list next Unknown belongs.
-public:
+ private:
+    XmlParser::Elm unknownParentType;  // used in handleElement to know in which list next Unknown belongs.
+
+ public:
     std::vector<Element *> outputs;            // list of Unknown
     std::vector<Element *> derivatives;        // list of Unknown
     std::vector<Element *> discreteStates;     // list of Unknown
     std::vector<Element *> initialUnknowns;    // list of Unknown
-public:
+
+ public:
+    ModelStructure();
     ~ModelStructure();
     void handleElement(XmlParser *parser, const char *childName, int isEmptyElement);
     void printElement(int indent);
 };
 
 class ModelDescription : public Element {
-public:
-    std::vector<Unit *> unitDefinitions;       // list of Units
-    std::vector<SimpleType *> typeDefinitions; // list of Types
-    Component *modelExchange;                  // NULL or ModelExchange
-    Component *coSimulation;                   // NULL or CoSimulation
-                                               // At least one of CoSimulation, ModelExchange must be present.
-    std::vector<Element *> logCategories;      // list of Category
-    Element *defaultExperiment;                // NULL or DefaultExperiment
-    std::vector<Element *> vendorAnnotations;  // list of Tools
-    std::vector<ScalarVariable *> modelVariables; // list of ScalarVariable
-    ModelStructure *modelStructure;            // not NULL ModelStructure
+ public:
+    std::vector<Unit *> unitDefinitions;        // list of Units
+    std::vector<SimpleType *> typeDefinitions;  // list of Types
+    Component *modelExchange;                   // NULL or ModelExchange
+    Component *coSimulation;                    // NULL or CoSimulation
+                                                // At least one of CoSimulation, ModelExchange must be present.
+    std::vector<Element *> logCategories;       // list of Category
+    Element *defaultExperiment;                 // NULL or DefaultExperiment
+    std::vector<Element *> vendorAnnotations;   // list of Tools
+    std::vector<ScalarVariable *> modelVariables;  // list of ScalarVariable
+    ModelStructure *modelStructure;             // not NULL ModelStructure
 
-public:
+ public:
     ModelDescription();
     ~ModelDescription();
     void handleElement(XmlParser *parser, const char *childName, int isEmptyElement);
@@ -147,7 +152,7 @@ public:
     const char *getDescriptionForVariable(ScalarVariable *sv);
     // get attribute from type, if not present look for it inside declared type.
     // Attributes example: 'min', 'max', 'quantity'.
-    const char * getAttributeFromTypeOrDeclaredType(ScalarVariable *sv, XmlParser::Att a);
+    const char *getAttributeFromTypeOrDeclaredType(ScalarVariable *sv, XmlParser::Att a);
 };
 
-#endif // XML_ELEMENT_H
+#endif  // XML_ELEMENT_H

@@ -17,6 +17,7 @@
  *  04.08.2011 added support for "FMI for Co-Simulation 1.0"
  *  02.08.2013 fixed a bug in instantiateModel reported by Markus Ende, TH Nuernberg
  *  02.04.2014 better time event handling
+ *  02.06.2014 copy instanceName and GUID at instantiation
  *
  * Copyright QTronic GmbH. All rights reserved.
  * ---------------------------------------------------------------------------*/
@@ -97,6 +98,11 @@ static fmiComponent instantiateModel(char* fname, fmiString instanceName, fmiStr
                 "%s: Missing instance name.", fname);
         return NULL;
     }
+    if (!GUID || strlen(GUID)==0) {
+        functions.logger(NULL, instanceName, fmiError, "error",
+                "%s: Missing GUID.", fname);
+        return NULL;
+    }
     if (!functions.allocateMemory || !functions.freeMemory){
         functions.logger(NULL, instanceName, fmiError, "error",
                 "%s: Missing callback function.", fname);
@@ -115,16 +121,19 @@ static fmiComponent instantiateModel(char* fname, fmiString instanceName, fmiStr
         comp->s = functions.allocateMemory(NUMBER_OF_STRINGS,  sizeof(fmiString));
         comp->isPositive = functions.allocateMemory(NUMBER_OF_EVENT_INDICATORS, sizeof(fmiBoolean));
         comp->instanceName = functions.allocateMemory(1 + strlen(instanceName), sizeof(char));
+        comp->GUID = functions.allocateMemory(1 + strlen(GUID), sizeof(char));
     }
-    if (!comp || !comp->r || !comp->i || !comp->b || !comp->s || !comp->isPositive) {
+    if (!comp || !comp->r || !comp->i || !comp->b || !comp->s || !comp->isPositive
+        || !comp->instanceName || !comp->GUID) {
         functions.logger(NULL, instanceName, fmiError, "error",
                 "%s: Out of memory.", fname);
         return NULL;
     }
     if (loggingOn) functions.logger(NULL, instanceName, fmiOK, "log",
             "%s: GUID=%s", fname, GUID);
+
     strcpy((char *)comp->instanceName, (char *)instanceName);
-    comp->GUID = GUID;
+    strcpy((char *)comp->GUID, (char *)GUID);
     comp->functions = functions;
     comp->loggingOn = loggingOn;
     comp->state = modelInstantiated;
@@ -176,10 +185,11 @@ void freeInstance(char* fname, fmiComponent c) {
         for (i=0; i<NUMBER_OF_STRINGS; i++){
             if (comp->s[i]) comp->functions.freeMemory((void *)comp->s[i]);
         }
-        comp->functions.freeMemory(comp->s);
+        comp->functions.freeMemory((void *)comp->s);
     }
     if (comp->isPositive) comp->functions.freeMemory(comp->isPositive);
     if (comp->instanceName) comp->functions.freeMemory((void *)comp->instanceName);
+    if (comp->GUID) comp->functions.freeMemory((void *)comp->GUID);
     comp->functions.freeMemory(comp);
 }
 
@@ -282,23 +292,28 @@ fmiStatus fmiSetString(fmiComponent c, const fmiValueReference vr[], size_t nvr,
     if (comp->loggingOn)
         comp->functions.logger(c, comp->instanceName, fmiOK, "log", "fmiSetString: nvr = %d",  nvr);
     for (i=0; i<nvr; i++) {
-        char* string = (char *)comp->s[vr[i]];
+        char *string = (char *)comp->s[vr[i]];
         if (vrOutOfRange(comp, "fmiSetString", vr[i], NUMBER_OF_STRINGS))
             return fmiError;
         if (comp->loggingOn) comp->functions.logger(c, comp->instanceName, fmiOK, "log",
             "fmiSetString: #s%d# = '%s'", vr[i], value[i]);
-        if (nullPointer(comp, "fmiSetString", "value[i]", value[i]))
-            return fmiError;
-        if (string==NULL || strlen(string) < strlen(value[i])) {
+        if (value[i] == NULL) {
             if (string) comp->functions.freeMemory(string);
-            comp->s[vr[i]] = comp->functions.allocateMemory(1+strlen(value[i]), sizeof(char));
-            if (!comp->s[vr[i]]) {
-                comp->state = modelError;
-                comp->functions.logger(NULL, comp->instanceName, fmiError, "error", "fmiSetString: Out of memory.");
-                return fmiError;
+            comp->s[vr[i]] = NULL;
+            comp->functions.logger(comp, comp->instanceName, fmiWarning, "warning",
+                            "fmiSetString: string argument value[%d] = NULL.", i);
+        } else {
+            if (string==NULL || strlen(string) < strlen(value[i])) {
+                if (string) comp->functions.freeMemory(string);
+                comp->s[vr[i]] = comp->functions.allocateMemory(1+strlen(value[i]), sizeof(char));
+                if (!comp->s[vr[i]]) {
+                    comp->state = modelError;
+                    comp->functions.logger(NULL, comp->instanceName, fmiError, "error", "fmiSetString: Out of memory.");
+                    return fmiError;
+                }
             }
+            strcpy((char *)comp->s[vr[i]], (char *)value[i]);
         }
-        strcpy((char *)comp->s[vr[i]], value[i]);
     }
     return fmiOK;
 }
@@ -440,7 +455,7 @@ fmiStatus fmiSetRealInputDerivatives(fmiComponent c, const fmiValueReference vr[
     if (invalidState(comp, "fmiSetRealInputDerivatives", modelInitialized))
          return fmiError;
     if (comp->loggingOn) log(c, comp->instanceName, fmiOK, "log", "fmiSetRealInputDerivatives: nvr= %d", nvr);
-    log(NULL, comp->instanceName, fmiError, "warning", "fmiSetRealInputDerivatives: ignoring function call."
+    log(c, comp->instanceName, fmiError, "warning", "fmiSetRealInputDerivatives: ignoring function call."
       " This model cannot interpolate inputs: canInterpolateInputs=\"fmiFalse\"");
     return fmiWarning;
 }
@@ -453,7 +468,7 @@ fmiStatus fmiGetRealOutputDerivatives(fmiComponent c, const fmiValueReference vr
     if (invalidState(comp, "fmiGetRealOutputDerivatives", modelInitialized))
          return fmiError;
     if (comp->loggingOn) log(c, comp->instanceName, fmiOK, "log", "fmiGetRealOutputDerivatives: nvr= %d", nvr);
-    log(NULL, comp->instanceName, fmiError, "warning", "fmiGetRealOutputDerivatives: ignoring function call."
+    log(c, comp->instanceName, fmiError, "warning", "fmiGetRealOutputDerivatives: ignoring function call."
       " This model cannot compute derivatives of outputs: MaxOutputDerivativeOrder=\"0\"");
     for (i=0; i<nvr; i++) value[i] = 0;
     return fmiWarning;
@@ -465,7 +480,7 @@ fmiStatus fmiCancelStep(fmiComponent c) {
     if (invalidState(comp, "fmiCancelStep", modelInitialized))
          return fmiError;
     if (comp->loggingOn) log(c, comp->instanceName, fmiOK, "log", "fmiCancelStep");
-    log(NULL, comp->instanceName, fmiError, "error", 
+    log(c, comp->instanceName, fmiError, "error", 
         "fmiCancelStep: Can be called when fmiDoStep returned fmiPending."
         " This is not the case."); 
     return fmiError;
@@ -477,17 +492,13 @@ fmiStatus fmiDoStep(fmiComponent c, fmiReal currentCommunicationPoint,
     fmiCallbackLogger log = comp->functions.logger;
     double h = communicationStepSize / 10;
     int k;
-
 #if NUMBER_OF_EVENT_INDICATORS>0 || NUMBER_OF_REALS>0
     int i;
 #endif
-
     const int n = 10; // how many Euler steps to perform for one do step
-
 #if NUMBER_OF_REALS>0
     double prevState[max(NUMBER_OF_STATES, 1)];
 #endif
-
 #if NUMBER_OF_EVENT_INDICATORS>0
     double prevEventIndicators[max(NUMBER_OF_EVENT_INDICATORS, 1)];
     int stateEvent = 0;
@@ -570,15 +581,15 @@ static fmiStatus getStatus(char* fname, fmiComponent c, const fmiStatusKind s) {
          return fmiError;
     if (comp->loggingOn) log(c, comp->instanceName, fmiOK, "log", "$s: fmiStatusKind = %s", fname, statusKind[s]);
     switch(s) {
-        case fmiDoStepStatus:  log(NULL, comp->instanceName, fmiError, "error",
+        case fmiDoStepStatus:  log(c, comp->instanceName, fmiError, "error",
            "%s: Can be called with fmiDoStepStatus when fmiDoStep returned fmiPending."
            " This is not the case.", fname);
            break;
-        case fmiPendingStatus:  log(NULL, comp->instanceName, fmiError, "error", 
+        case fmiPendingStatus:  log(c, comp->instanceName, fmiError, "error", 
            "%s: Can be called with fmiPendingStatus when fmiDoStep returned fmiPending."
            " This is not the case.", fname); 
            break;
-        case fmiLastSuccessfulTime:  log(NULL, comp->instanceName, fmiError, "error",
+        case fmiLastSuccessfulTime:  log(c, comp->instanceName, fmiError, "error",
            "%s: Can be called with fmiLastSuccessfulTime when fmiDoStep returned fmiDiscard."
            " This is not the case.", fname); 
            break;
@@ -651,7 +662,7 @@ fmiStatus fmiSetContinuousStates(fmiComponent c, const fmiReal x[], size_t nx){
         fmiValueReference vr = vrStates[i];
         if (comp->loggingOn) comp->functions.logger(c, comp->instanceName, fmiOK, "log",
             "fmiSetContinuousStates: #r%d#=%.16g", vr, x[i]);
-        assert(vr>=0 && vr<NUMBER_OF_REALS);
+        assert(vr<NUMBER_OF_REALS);
         comp->r[vr] = x[i];
     }
 #endif
@@ -747,7 +758,7 @@ fmiStatus fmiGetNominalContinuousStates(fmiComponent c, fmiReal x_nominal[], siz
 }
 
 fmiStatus fmiGetDerivatives(fmiComponent c, fmiReal derivatives[], size_t nx) {
-#if NUMBER_OF_STATES>0
+#if NUMBER_OF_REALS>0
     int i;
 #endif
     ModelInstance* comp = (ModelInstance *)c;

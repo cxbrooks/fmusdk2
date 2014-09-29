@@ -12,6 +12,13 @@
 #include "XmlParser.h"
 #include "XmlElement.h"
 
+#ifdef STANDALONE_XML_PARSER
+#define logThis(n, ...) printf(__VA_ARGS__); printf("\n")
+#define checkStrdup(str) strdup(str)
+#else
+#include "logging.h"  // logThis
+#endif  // STANDALONE_XML_PARSER
+
 ModelDescription* parse(char* xmlPath) {
     XmlParser parser(xmlPath);
     return parser.parse();
@@ -135,7 +142,7 @@ Element *getAnnotation(ScalarVariable *sv, int index) {
     return sv->annotations.at(index);
 }
 
-fmiValueReference getValueReference(ScalarVariable *sv) {
+fmi2ValueReference getValueReference(ScalarVariable *sv) {
     return sv->getValueReference();
 }
 // returns one of constant, fixed, tunable, discrete, continuous.
@@ -199,9 +206,14 @@ const char *getElementTypeName(Element *el) {
 const char **getAttributesAsArray(Element *el, int *n) {
     *n = el->attributes.size();
     const char **result = (const char **)calloc(2 * (*n), sizeof(char *));
+    if (!result) {
+        logThis(ERROR_FATAL, "Out of memory");
+        n = 0;
+        return NULL;
+    }
     int i = 0;
     for (std::map<XmlParser::Att, char *>::iterator it = el->attributes.begin(); it != el->attributes.end(); ++it ) {
-        result[i] = XmlParser::attNames[it->first];
+        result[i] = (const char*)XmlParser::attNames[it->first];
         result[i + 1] = it->second;
         i = i + 2;
     }

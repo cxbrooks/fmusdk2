@@ -12,23 +12,22 @@
  * ---------------------------------------------------------------------------*/
 
 #include "XmlParser.h"
-#include "XmlParserException.h"
+#include <utility>
+#include <vector>
 #include "XmlElement.h"
+#include "XmlParserException.h"
 
-#include <cstring> // strdup()
 
 #ifdef STANDALONE_XML_PARSER
-// ## is special to gcc, see http://gcc.gnu.org/onlinedocs/cpp/Variadic-Macros.html
-#define logThis(n, ...) printf(__VA_ARGS__);printf("\n")
+#define logThis(n, ...) printf(__VA_ARGS__); printf("\n")
+#define checkStrdup(str) strdup(str)
 #else
-
-extern "C" {
 #include "GlobalIncludes.h"
-#include "logging.h" // logThis
-} // closing brace for extern "C"
-#endif // STANDALONE_XML_PARSER
+#include "logging.h"  // logThis
+#include "minutil.h"  // checkStrdup
+#endif  // STANDALONE_XML_PARSER
 
-const char *XmlParser::elmNames[SIZEOF_ELM] = { 
+const char *XmlParser::elmNames[SIZEOF_ELM] = {
     "fmiModelDescription", "ModelExchange", "CoSimulation", "SourceFiles", "File",
     "UnitDefinitions", "Unit", "BaseUnit", "DisplayUnit", "TypeDefinitions",
     "SimpleType", "Real", "Integer", "Boolean", "String",
@@ -49,15 +48,16 @@ const char *XmlParser::attNames[SIZEOF_ATT] = {
     "stepSize", "valueReference", "causality", "variability", "initial",
     "previous", "canHandleMultipleSetPerTimeInstant", "declaredType", "start", "derivative",
     "reinit", "index", "dependencies", "dependenciesKind", "modelIdentifier",
-    "needsExecutionTool", "completedIntegratorStepNotNeeded", "canBeInstantiatedOnlyOncePerProcess", "canNotUseMemoryManagementFunctions", "canGetAndSetFMUstate",
-    "canSerializeFMUstate", "providesDirectionalDerivative","canHandleVariableCommunicationStepSize", "canInterpolateInputs", "maxOutputDerivativeOrder",
+    "needsExecutionTool", "completedIntegratorStepNotNeeded", "canBeInstantiatedOnlyOncePerProcess",
+        "canNotUseMemoryManagementFunctions", "canGetAndSetFMUstate",
+    "canSerializeFMUstate", "providesDirectionalDerivative", "canHandleVariableCommunicationStepSize",
+        "canInterpolateInputs", "maxOutputDerivativeOrder",
     "canRunAsynchronuously",
 
-    // not conform with the FMI 2.0 doc. // Todo : remove then used models become mature.
+    // not conform with the FMI 2.0 doc.  // TODO : remove when used models become mature.
     "xmlns:xsi",                       // Dymola examples from 2014 FD01
     "providesDirectionalDerivatives",  // Dymola examples from 2014 FD01
     "canHandleEvents"                  // Dymola examples from 2014 FD01
-
 };
 
 const char *XmlParser::enuNames[SIZEOF_ENU] = {
@@ -68,7 +68,7 @@ const char *XmlParser::enuNames[SIZEOF_ENU] = {
 };
 
 XmlParser::XmlParser(char *xmlPath) {
-    this->xmlPath = strdup(xmlPath);
+    this->xmlPath = (char *)checkStrdup(xmlPath);
     xmlReader = NULL;
 }
 
@@ -81,9 +81,8 @@ ModelDescription *XmlParser::parse() {
     ModelDescription *md = NULL;
     if (xmlReader != NULL) {
         try {
-            int ret = xmlTextReaderRead(xmlReader);
-            // I expect that first element is fmiModelDescription.
-            if (ret == 1) {
+            if (readNextInXml()) {
+                // I expect that first element is fmiModelDescription.
                 if (0 != strcmp((char *)xmlTextReaderConstLocalName(xmlReader), elmNames[elm_fmiModelDescription])) {
                     throw XmlParserException("Expected '%s' element. Found instead: '%s'.",
                         elmNames[elm_fmiModelDescription],
@@ -112,12 +111,27 @@ ModelDescription *XmlParser::parse() {
     return validate(md);
 }
 
+// Returns the index of name in the array.
+// Throw exception if name not found (invalid).
+static int checkName(const char *name, const char *kind, const char *array[], int n) {
+    for (int i = 0; i < n; i++) {
+        if (!strcmp(name, array[i])) {
+            return i;
+        }
+    }
+    throw XmlParserException("Illegal %s %s", kind, name);
+}
+
+XmlParser::Att XmlParser::checkAttribute(const char *att) {
+    return (XmlParser::Att)checkName(att, "attribute", XmlParser::attNames, XmlParser::SIZEOF_ATT);
+}
+
 void XmlParser::parseElementAttributes(Element *element) {
     while (xmlTextReaderMoveToNextAttribute(xmlReader)) {
         xmlChar *name = xmlTextReaderName(xmlReader);
         xmlChar *value = xmlTextReaderValue(xmlReader);
         XmlParser::Att key = checkAttribute((char *)name);
-        char *theValue = value ? strdup((char *)value) : NULL;
+        char *theValue = value ? (char *)checkStrdup((char *)value) : NULL;
         element->attributes.insert(std::pair<XmlParser::Att, char *>(key, theValue));
         xmlFree(name);
         xmlFree(value);
@@ -132,8 +146,8 @@ void XmlParser::parseChildElements(Element *el) {
         return;
     }
 
-    int ret = xmlTextReaderRead(xmlReader);
-    while (ret == 1  && xmlTextReaderNodeType(xmlReader) != XML_READER_TYPE_END_ELEMENT) {
+    bool ret = readNextInXml();
+    while (ret  && xmlTextReaderNodeType(xmlReader) != XML_READER_TYPE_END_ELEMENT) {
         if (xmlTextReaderNodeType(xmlReader) == XML_READER_TYPE_ELEMENT) {
             const char *localName = (char *)xmlTextReaderConstLocalName(xmlReader);
             int depthBefore = xmlTextReaderDepth(xmlReader);
@@ -146,19 +160,19 @@ void XmlParser::parseChildElements(Element *el) {
                 }
             }
         }
-        ret = xmlTextReaderRead(xmlReader);
+        ret = readNextInXml();
     }
-    if (ret == -1) {
+    if (!ret) {
         throw XmlParserException("Error parsing xml file '%s'", xmlPath);
     }
 }
 
 void XmlParser::parseEndElement() {
-    int ret = xmlTextReaderRead(xmlReader);
-    while (ret == 1  && xmlTextReaderNodeType(xmlReader) != XML_READER_TYPE_END_ELEMENT) {
-        ret = xmlTextReaderRead(xmlReader);
+    bool ret = readNextInXml();
+    while (ret  && xmlTextReaderNodeType(xmlReader) != XML_READER_TYPE_END_ELEMENT) {
+        ret = readNextInXml();
     }
-    if (ret == -1) {
+    if (!ret) {
         throw XmlParserException("Error parsing xml file '%s'", xmlPath);
     }
 }
@@ -170,24 +184,21 @@ void XmlParser::parseSkipChildElement() {
     }
 }
 
+bool XmlParser::readNextInXml() {
+    int ret;
+    do {
+        ret = xmlTextReaderRead(xmlReader);
+    } while (ret == 1 && xmlTextReaderNodeType(xmlReader) == XML_READER_TYPE_COMMENT);
+
+    if (ret != 1) {
+        return false;
+    }
+    return true;
+}
+
 /* -------------------------------------------------------------------------* 
  * Helper functions to check validity of xml.
  * -------------------------------------------------------------------------*/
-
-// Returns the index of name in the array.
-// Throw exception if name not found (invalid).
-static int checkName(const char *name, const char *kind, const char *array[], int n) {
-    for (int i = 0; i < n; i++) {
-        if (!strcmp(name, array[i])) {
-            return i;
-        }
-    }
-    throw (XmlParserException("Illegal %s %s", kind, name));
-}
-
-XmlParser::Att XmlParser::checkAttribute(const char *att){
-    return (XmlParser::Att)checkName(att, "attribute", XmlParser::attNames, XmlParser::SIZEOF_ATT);
-}
 
 XmlParser::Elm XmlParser::checkElement(const char *elm) {
     return (XmlParser::Elm)checkName(elm, "element", XmlParser::elmNames, XmlParser::SIZEOF_ELM);
@@ -203,8 +214,7 @@ ModelDescription *XmlParser::validate(ModelDescription *md) {
     // check modelDescription required attributes
     if (!(md->getAttributeValue(XmlParser::att_fmiVersion)
         && md->getAttributeValue(XmlParser::att_modelName)
-        && md->getAttributeValue(XmlParser::att_guid)
-        )) {
+        && md->getAttributeValue(XmlParser::att_guid))) {
             logThis(ERROR_ERROR, "Model description miss required attributes in file %s", xmlPath);
             return NULL;
     }
@@ -216,14 +226,15 @@ ModelDescription *XmlParser::validate(ModelDescription *md) {
     }
 
     // check model variables
-    for (std::vector<ScalarVariable *>::iterator it = md->modelVariables.begin(); it != md->modelVariables.end(); ++it) {
+    for (std::vector<ScalarVariable *>::const_iterator it = md->modelVariables.begin(); it != md->modelVariables.end();
+            ++it) {
         const char *varName = (*it)->getAttributeValue(XmlParser::att_name);
         if (!varName) {
             logThis(ERROR_ERROR, "Scalar variable miss required %s attribute in modelDescription.xml",
                 XmlParser::attNames[XmlParser::att_name]);
             errors++;
             continue;
-        };
+        }
         XmlParser::ValueStatus vs;
         (*it)->getAttributeUInt(XmlParser::att_valueReference, &vs);
         if (vs == XmlParser::valueMissing) {
@@ -239,7 +250,7 @@ ModelDescription *XmlParser::validate(ModelDescription *md) {
             continue;
         }
         if (!(*it)->typeSpec) {
-            logThis(ERROR_ERROR, "Scalar variable %s miss type specification in modelDescription.xml %s",
+            logThis(ERROR_ERROR, "Scalar variable %s miss type specification in modelDescription.xml",
                 varName, XmlParser::attNames[XmlParser::att_valueReference]);
             errors++;
             continue;
@@ -247,8 +258,8 @@ ModelDescription *XmlParser::validate(ModelDescription *md) {
         if ((*it)->typeSpec->type == XmlParser::elm_Enumeration) {
             const char *typeName = (*it)->typeSpec->getAttributeValue(XmlParser::att_declaredType);
             if (!typeName) {
-                logThis(ERROR_ERROR, "Scalar variable %s with enum type specification miss required %s attribute in modelDescription.xml",
-                     varName, XmlParser::attNames[XmlParser::att_declaredType]);
+                logThis(ERROR_ERROR, "Scalar variable %s with enum type specification miss required %s attribute in "
+                        "modelDescription.xml", varName, XmlParser::attNames[XmlParser::att_declaredType]);
                 errors++;
                 continue;
             }
@@ -268,13 +279,13 @@ ModelDescription *XmlParser::validate(ModelDescription *md) {
     return md;
 }
 
-//#define TEST
-#ifdef TEST 
-#ifndef STANDALONE_XML_PARSER
-int main () { 
-    //{ char c='c'; while(c!='g') scanf("%c", &c); } // to debug: wait for the g key
+// #define TEST
+#ifdef TEST
+int main() {
+    // { char c='c'; while(c!='g') scanf("%c", &c); } // to debug: wait for the g key
 
-    XmlParser *parser = new XmlParser("c:\\_data\\fmi-fmu\\fmi-fmuVS\\fmi-fmuVS\\modelDescriptionDymola - ManuallyModifiedCopy.xml");
+    XmlParser *parser =
+        new XmlParser("c:\\_data\\fmi-fmu\\fmi-fmuVS\\fmi-fmuVS\\modelDescriptionDymola - ManuallyModifiedCopy.xml");
     ModelDescription *md = parser->parse();
     if (md) md->printElement(0);
     delete parser;
@@ -283,5 +294,4 @@ int main () {
     dumpMemoryLeaks();
     return 0;
 }
-#endif // STANDALONE_XML_PARSER
-#endif // TEST
+#endif  // TEST

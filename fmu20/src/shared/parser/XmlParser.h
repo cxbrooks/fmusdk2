@@ -21,18 +21,20 @@
 #pragma comment(lib, "wsock32.lib")
 #endif
 
+#ifndef fmi2TypesPlatform_h
 // same as in FMI 2.0 specification
-typedef unsigned int fmiValueReference;
+typedef unsigned int fmi2ValueReference;
+#endif
 
 class Element;
 class ModelDescription;
 
 class XmlParser {
-public:
-    //Elements
+ public:
+    // Elements
     static const int SIZEOF_ELM = 31;
     static const char *elmNames[SIZEOF_ELM];
-    /*static const*/ enum Elm {
+    enum Elm {
         elm_BAD_DEFINED = -1,
         elm_fmiModelDescription, elm_ModelExchange, elm_CoSimulation, elm_SourceFiles, elm_File,
         elm_UnitDefinitions, elm_Unit, elm_BaseUnit, elm_DisplayUnit, elm_TypeDefinitions,
@@ -44,9 +46,9 @@ public:
     };
 
     // Attributes
-    static const int SIZEOF_ATT = 64; //61;
+    static const int SIZEOF_ATT = 64;  // 61;
     static const char *attNames[SIZEOF_ATT];
-    /*static const*/ enum Att {
+    enum Att {
         att_BAD_DEFINED = -1,
         att_fmiVersion, att_modelName, att_guid, att_description, att_author,
         att_version, att_copyright, att_license, att_generationTool, att_generationDateAndTime,
@@ -58,8 +60,10 @@ public:
         att_stepSize, att_valueReference, att_causality, att_variability, att_initial,
         att_previous, att_canHandleMultipleSetPerTimeInstant, att_declaredType, att_start, att_derivative,
         att_reinit, att_index, att_dependencies, att_dependenciesKind, att_modelIdentifier,
-        att_needsExecutionTool, att_completedIntegratorStepNotNeeded, att_canBeInstantiatedOnlyOncePerProcess, att_canNotUseMemoryManagementFunctions, att_canGetAndSetFMUstate,
-        att_canSerializeFMUstate, att_providesDirectionalDerivative, att_canHandleVariableCommunicationStepSize, att_canInterpolateInputs, att_maxOutputDerivativeOrder,
+        att_needsExecutionTool, att_completedIntegratorStepNotNeeded, att_canBeInstantiatedOnlyOncePerProcess,
+            att_canNotUseMemoryManagementFunctions, att_canGetAndSetFMUstate,
+        att_canSerializeFMUstate, att_providesDirectionalDerivative, att_canHandleVariableCommunicationStepSize,
+            att_canInterpolateInputs, att_maxOutputDerivativeOrder,
         att_canRunAsynchronuously,
 
         att_xmlnsXsi, att_providesDirectionalDerivatives, att_canHandleEvents
@@ -68,7 +72,7 @@ public:
     // Enumeration values
     static const int SIZEOF_ENU = 17;
     static const char *enuNames[SIZEOF_ENU];
-    /*static*/ enum Enu {
+    enum Enu {
         enu_BAD_DEFINED = -1,
         enu_flat, enu_structured, enu_dependent, enu_constant, enu_fixed,
         enu_tunable, enu_discrete, enu_parameter, enu_calculatedParameter, enu_input,
@@ -77,16 +81,17 @@ public:
     };
 
     // Possible results when retrieving an attribute value from an element
-    /*typedef*/ enum ValueStatus {
+    enum ValueStatus {
         valueMissing,
         valueDefined,
         valueIllegal
     };
-private:
+
+ private:
     char *xmlPath;
     xmlTextReaderPtr xmlReader;
 
-public:
+ public:
     // return the type of this element. Int value match the index in elmNames.
     // throw XmlParserException if element is invalid.
     static XmlParser::Elm checkElement(const char* elm);
@@ -97,7 +102,7 @@ public:
     // throw XmlParserException if enu is invalid.
     static XmlParser::Enu checkEnumValue(const char* enu);
 
-    XmlParser(char *xmlPath);
+    explicit XmlParser(char *xmlPath);
     ~XmlParser();
     // return NULL on errors. Caller must free the result if not NULL.
     ModelDescription *parse();
@@ -108,10 +113,13 @@ public:
     void parseEndElement();
     void parseSkipChildElement();
 
-private:
+ private:
+    // advance reading in xml and skip comments if present.
+    bool readNextInXml();
+
     // check some properties of model description (i.e. each variable has valueReference, ...)
     // if valid return the input model description, else return NULL.
     ModelDescription *validate(ModelDescription *md);
 };
 
-#endif // XML_PARSER_H
+#endif  // XML_PARSER_H

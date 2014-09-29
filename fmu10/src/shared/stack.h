@@ -1,11 +1,18 @@
+/*
+ * Copyright QTronic GmbH. All rights reserved.
+ */
+
 /* -------------------------------------------------------------------------
  * stack.c
  * A stack of pointers.
- * Copyright QTronic GmbH. All rights reserved.
+ * Author: Jakob Mauss, January 2010.
  * -------------------------------------------------------------------------*/
 
 #ifndef STACK_H
 #define STACK_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
     void** stack;
@@ -24,5 +31,7 @@ void** stackPopAllAsArray(Stack* s, int *size);
 void** stackLastPopedAsArray0(Stack* s, int n);
 void stackFree(Stack* s);
 
+#ifdef __cplusplus
+} // closing brace for extern "C"
+#endif
 #endif // STACK_H
-

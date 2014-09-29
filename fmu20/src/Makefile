@@ -34,10 +34,10 @@ MODEL_EXCHANGE_DEPS = \
 
 # Dependencies shared between both fmusim_cs and fmusim_me
 SHARED_DEPS = \
-	shared/fmi.h \
-	shared/include/fmiFunctions.h \
-	shared/include/fmiFunctionTypes.h \
-	shared/include/fmiTypesPlatform.h \
+	shared/fmi2.h \
+	shared/include/fmi2Functions.h \
+	shared/include/fmi2FunctionTypes.h \
+	shared/include/fmi2TypesPlatform.h \
 	shared/parser/XmlElement.h \
 	shared/parser/XmlParser.h \
 	shared/parser/XmlParserCApi.h \

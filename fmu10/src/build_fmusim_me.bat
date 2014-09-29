@@ -36,10 +36,9 @@ goto noCompiler
 
 set SRC=fmusim_me\main.c ..\shared\xml_parser.c ..\shared\stack.c ..\shared\sim_support.c
 set INC=/Iinclude /I../shared /Ifmusim_me
-set OPTIONS=/wd4090 /nologo
+set OPTIONS=/nologo /DSTANDALONE_XML_PARSER
 
 rem create fmu10sim_me.exe in the fmusim_me dir
-rem /wd4090 to disable warnings about different 'const' qualifiers
 pushd model_exchange
 cl %SRC% %INC% %OPTIONS% /Fefmu10sim_me.exe /link ..\shared\%x64%libexpatMT.lib
 del *.obj

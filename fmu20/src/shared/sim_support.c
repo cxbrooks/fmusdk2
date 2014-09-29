@@ -6,6 +6,9 @@
  *
  * Revision history
  *  07.03.2014 initial version released in FMU SDK 2.0.0
+ *  10.04.2014 use FMI 2.0 headers that prefix function and type names with 'fmi2'.
+ *             When 'fmi2' functions are not found in loaded DLL, look also for
+ *             FMI 2.0 RC1 function names.
  *
  * Author: Adrian Tirea
  * Copyright QTronic GmbH. All rights reserved.
@@ -16,8 +19,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdarg.h>
-
-#include "fmi.h"
+#include "fmi2.h"
 #include "sim_support.h"
 
 #ifndef _MSC_VER
@@ -165,8 +167,8 @@ static char* getTmpPath() {
 
 char *getTempResourcesLocation() {
     char *tempPath = getTmpPath();
-    char *resourcesLocation = (char *)calloc(sizeof(char), 8 + strlen(RESOURCES_DIR) + strlen(tempPath));
-    strcpy(resourcesLocation, "file://");
+    char *resourcesLocation = (char *)calloc(sizeof(char), 9 + strlen(RESOURCES_DIR) + strlen(tempPath));
+    strcpy(resourcesLocation, "file:///");
     strcat(resourcesLocation, tempPath);
     strcat(resourcesLocation, RESOURCES_DIR);
     free(tempPath);
@@ -181,11 +183,11 @@ static void *getAdr(int *success, HMODULE dllHandle, const char *functionName) {
     fp = dlsym(dllHandle, functionName);
 #endif
     if (!fp) {
-        printf("warning: Function %s not found in dll\n", functionName);
 #ifdef _MSC_VER
 #else
         printf ("Error was: %s\n", dlerror());
 #endif 
+        printf("warning: Function %s not found in dll\n", functionName);
         *success = 0;
     }
     return fp;
@@ -203,62 +205,113 @@ static int loadDll(const char* dllPath, FMU *fmu) {
 #endif
 
     if (!h) {
-        printf("error: Could not load %s\n", dllPath);
 #ifdef _MSC_VER
 #else
         printf("The error was: %s\n", dlerror());
 #endif
+        printf("error: Could not load %s\n", dllPath);
         return 0; // failure
     }
     fmu->dllHandle = h;
-    fmu->getTypesPlatform          = (fmiGetTypesPlatformTYPE *)      getAdr(&s, h, "fmiGetTypesPlatform");
-    fmu->getVersion                = (fmiGetVersionTYPE *)            getAdr(&s, h, "fmiGetVersion");
-    fmu->setDebugLogging           = (fmiSetDebugLoggingTYPE *)       getAdr(&s, h, "fmiSetDebugLogging");
-    fmu->instantiate               = (fmiInstantiateTYPE *)           getAdr(&s, h, "fmiInstantiate");
-    fmu->freeInstance              = (fmiFreeInstanceTYPE *)          getAdr(&s, h, "fmiFreeInstance");
-    fmu->setupExperiment           = (fmiSetupExperimentTYPE *)       getAdr(&s, h, "fmiSetupExperiment");
-    fmu->enterInitializationMode   = (fmiEnterInitializationModeTYPE *) getAdr(&s, h, "fmiEnterInitializationMode");
-    fmu->exitInitializationMode    = (fmiExitInitializationModeTYPE *) getAdr(&s, h, "fmiExitInitializationMode");
-    fmu->terminate                 = (fmiTerminateTYPE *)             getAdr(&s, h, "fmiTerminate");
-    fmu->reset                     = (fmiResetTYPE *)                 getAdr(&s, h, "fmiReset");
-    fmu->getReal                   = (fmiGetRealTYPE *)               getAdr(&s, h, "fmiGetReal");
-    fmu->getInteger                = (fmiGetIntegerTYPE *)            getAdr(&s, h, "fmiGetInteger");
-    fmu->getBoolean                = (fmiGetBooleanTYPE *)            getAdr(&s, h, "fmiGetBoolean");
-    fmu->getString                 = (fmiGetStringTYPE *)             getAdr(&s, h, "fmiGetString");
-    fmu->setReal                   = (fmiSetRealTYPE *)               getAdr(&s, h, "fmiSetReal");
-    fmu->setInteger                = (fmiSetIntegerTYPE *)            getAdr(&s, h, "fmiSetInteger");
-    fmu->setBoolean                = (fmiSetBooleanTYPE *)            getAdr(&s, h, "fmiSetBoolean");
-    fmu->setString                 = (fmiSetStringTYPE *)             getAdr(&s, h, "fmiSetString");
-    fmu->getFMUstate               = (fmiGetFMUstateTYPE *)           getAdr(&s, h, "fmiGetFMUstate");
-    fmu->setFMUstate               = (fmiSetFMUstateTYPE *)           getAdr(&s, h, "fmiSetFMUstate");
-    fmu->freeFMUstate              = (fmiFreeFMUstateTYPE *)          getAdr(&s, h, "fmiFreeFMUstate");
-    fmu->serializedFMUstateSize    = (fmiSerializedFMUstateSizeTYPE *) getAdr(&s, h, "fmiSerializedFMUstateSize");
-    fmu->serializeFMUstate         = (fmiSerializeFMUstateTYPE *)     getAdr(&s, h, "fmiSerializeFMUstate");
-    fmu->deSerializeFMUstate       = (fmiDeSerializeFMUstateTYPE *)   getAdr(&s, h, "fmiDeSerializeFMUstate");
-    fmu->getDirectionalDerivative  = (fmiGetDirectionalDerivativeTYPE *) getAdr(&s, h, "fmiGetDirectionalDerivative");
+    fmu->getTypesPlatform          = (fmi2GetTypesPlatformTYPE *)      getAdr(&s, h, "fmi2GetTypesPlatform");
+    fmu->getVersion                = (fmi2GetVersionTYPE *)            getAdr(&s, h, "fmi2GetVersion");
+    fmu->setDebugLogging           = (fmi2SetDebugLoggingTYPE *)       getAdr(&s, h, "fmi2SetDebugLogging");
+    fmu->instantiate               = (fmi2InstantiateTYPE *)           getAdr(&s, h, "fmi2Instantiate");
+    fmu->freeInstance              = (fmi2FreeInstanceTYPE *)          getAdr(&s, h, "fmi2FreeInstance");
+    fmu->setupExperiment           = (fmi2SetupExperimentTYPE *)       getAdr(&s, h, "fmi2SetupExperiment");
+    fmu->enterInitializationMode   = (fmi2EnterInitializationModeTYPE *) getAdr(&s, h, "fmi2EnterInitializationMode");
+    fmu->exitInitializationMode    = (fmi2ExitInitializationModeTYPE *) getAdr(&s, h, "fmi2ExitInitializationMode");
+    fmu->terminate                 = (fmi2TerminateTYPE *)             getAdr(&s, h, "fmi2Terminate");
+    fmu->reset                     = (fmi2ResetTYPE *)                 getAdr(&s, h, "fmi2Reset");
+    fmu->getReal                   = (fmi2GetRealTYPE *)               getAdr(&s, h, "fmi2GetReal");
+    fmu->getInteger                = (fmi2GetIntegerTYPE *)            getAdr(&s, h, "fmi2GetInteger");
+    fmu->getBoolean                = (fmi2GetBooleanTYPE *)            getAdr(&s, h, "fmi2GetBoolean");
+    fmu->getString                 = (fmi2GetStringTYPE *)             getAdr(&s, h, "fmi2GetString");
+    fmu->setReal                   = (fmi2SetRealTYPE *)               getAdr(&s, h, "fmi2SetReal");
+    fmu->setInteger                = (fmi2SetIntegerTYPE *)            getAdr(&s, h, "fmi2SetInteger");
+    fmu->setBoolean                = (fmi2SetBooleanTYPE *)            getAdr(&s, h, "fmi2SetBoolean");
+    fmu->setString                 = (fmi2SetStringTYPE *)             getAdr(&s, h, "fmi2SetString");
+    fmu->getFMUstate               = (fmi2GetFMUstateTYPE *)           getAdr(&s, h, "fmi2GetFMUstate");
+    fmu->setFMUstate               = (fmi2SetFMUstateTYPE *)           getAdr(&s, h, "fmi2SetFMUstate");
+    fmu->freeFMUstate              = (fmi2FreeFMUstateTYPE *)          getAdr(&s, h, "fmi2FreeFMUstate");
+    fmu->serializedFMUstateSize    = (fmi2SerializedFMUstateSizeTYPE *) getAdr(&s, h, "fmi2SerializedFMUstateSize");
+    fmu->serializeFMUstate         = (fmi2SerializeFMUstateTYPE *)     getAdr(&s, h, "fmi2SerializeFMUstate");
+    fmu->deSerializeFMUstate       = (fmi2DeSerializeFMUstateTYPE *)   getAdr(&s, h, "fmi2DeSerializeFMUstate");
+    fmu->getDirectionalDerivative  = (fmi2GetDirectionalDerivativeTYPE *) getAdr(&s, h, "fmi2GetDirectionalDerivative");
 #ifdef FMI_COSIMULATION
-    fmu->setRealInputDerivatives   = (fmiSetRealInputDerivativesTYPE *) getAdr(&s, h, "fmiSetRealInputDerivatives");
-    fmu->getRealOutputDerivatives  = (fmiGetRealOutputDerivativesTYPE *) getAdr(&s, h, "fmiGetRealOutputDerivatives");
-    fmu->doStep                    = (fmiDoStepTYPE *)                getAdr(&s, h, "fmiDoStep");
-    fmu->cancelStep                = (fmiCancelStepTYPE *)            getAdr(&s, h, "fmiCancelStep");
-    fmu->getStatus                 = (fmiGetStatusTYPE *)             getAdr(&s, h, "fmiGetStatus");
-    fmu->getRealStatus             = (fmiGetRealStatusTYPE *)         getAdr(&s, h, "fmiGetRealStatus");
-    fmu->getIntegerStatus          = (fmiGetIntegerStatusTYPE *)      getAdr(&s, h, "fmiGetIntegerStatus");
-    fmu->getBooleanStatus          = (fmiGetBooleanStatusTYPE *)      getAdr(&s, h, "fmiGetBooleanStatus");
-    fmu->getStringStatus           = (fmiGetStringStatusTYPE *)       getAdr(&s, h, "fmiGetStringStatus");
-#else // FMI for Model Exchange
-    fmu->enterEventMode            = (fmiEnterEventModeTYPE *)        getAdr(&s, h, "fmiEnterEventMode");
-    fmu->newDiscreteStates         = (fmiNewDiscreteStatesTYPE *)     getAdr(&s, h, "fmiNewDiscreteStates");
-    fmu->enterContinuousTimeMode   = (fmiEnterContinuousTimeModeTYPE *) getAdr(&s, h, "fmiEnterContinuousTimeMode");
-    fmu->completedIntegratorStep   = (fmiCompletedIntegratorStepTYPE *) getAdr(&s, h, "fmiCompletedIntegratorStep");
-    fmu->setTime                   = (fmiSetTimeTYPE *)               getAdr(&s, h, "fmiSetTime");
-    fmu->setContinuousStates       = (fmiSetContinuousStatesTYPE *)   getAdr(&s, h, "fmiSetContinuousStates");
-    fmu->getDerivatives            = (fmiGetDerivativesTYPE *)        getAdr(&s, h, "fmiGetDerivatives");
-    fmu->getEventIndicators        = (fmiGetEventIndicatorsTYPE *)    getAdr(&s, h, "fmiGetEventIndicators");
-    fmu->getContinuousStates       = (fmiGetContinuousStatesTYPE *)   getAdr(&s, h, "fmiGetContinuousStates");
-    fmu->getNominalsOfContinuousStates = (fmiGetNominalsOfContinuousStatesTYPE *) getAdr(&s, h, "fmiGetNominalsOfContinuousStates");
+    fmu->setRealInputDerivatives   = (fmi2SetRealInputDerivativesTYPE *) getAdr(&s, h, "fmi2SetRealInputDerivatives");
+    fmu->getRealOutputDerivatives  = (fmi2GetRealOutputDerivativesTYPE *) getAdr(&s, h, "fmi2GetRealOutputDerivatives");
+    fmu->doStep                    = (fmi2DoStepTYPE *)                getAdr(&s, h, "fmi2DoStep");
+    fmu->cancelStep                = (fmi2CancelStepTYPE *)            getAdr(&s, h, "fmi2CancelStep");
+    fmu->getStatus                 = (fmi2GetStatusTYPE *)             getAdr(&s, h, "fmi2GetStatus");
+    fmu->getRealStatus             = (fmi2GetRealStatusTYPE *)         getAdr(&s, h, "fmi2GetRealStatus");
+    fmu->getIntegerStatus          = (fmi2GetIntegerStatusTYPE *)      getAdr(&s, h, "fmi2GetIntegerStatus");
+    fmu->getBooleanStatus          = (fmi2GetBooleanStatusTYPE *)      getAdr(&s, h, "fmi2GetBooleanStatus");
+    fmu->getStringStatus           = (fmi2GetStringStatusTYPE *)       getAdr(&s, h, "fmi2GetStringStatus");
+#else // FMI2 for Model Exchange
+    fmu->enterEventMode            = (fmi2EnterEventModeTYPE *)        getAdr(&s, h, "fmi2EnterEventMode");
+    fmu->newDiscreteStates         = (fmi2NewDiscreteStatesTYPE *)     getAdr(&s, h, "fmi2NewDiscreteStates");
+    fmu->enterContinuousTimeMode   = (fmi2EnterContinuousTimeModeTYPE *) getAdr(&s, h, "fmi2EnterContinuousTimeMode");
+    fmu->completedIntegratorStep   = (fmi2CompletedIntegratorStepTYPE *) getAdr(&s, h, "fmi2CompletedIntegratorStep");
+    fmu->setTime                   = (fmi2SetTimeTYPE *)               getAdr(&s, h, "fmi2SetTime");
+    fmu->setContinuousStates       = (fmi2SetContinuousStatesTYPE *)   getAdr(&s, h, "fmi2SetContinuousStates");
+    fmu->getDerivatives            = (fmi2GetDerivativesTYPE *)        getAdr(&s, h, "fmi2GetDerivatives");
+    fmu->getEventIndicators        = (fmi2GetEventIndicatorsTYPE *)    getAdr(&s, h, "fmi2GetEventIndicators");
+    fmu->getContinuousStates       = (fmi2GetContinuousStatesTYPE *)   getAdr(&s, h, "fmi2GetContinuousStates");
+    fmu->getNominalsOfContinuousStates = (fmi2GetNominalsOfContinuousStatesTYPE *) getAdr(&s, h, "fmi2GetNominalsOfContinuousStates");
 #endif
 
+    if (fmu->getVersion == NULL && fmu->instantiate == NULL) {
+        printf("warning: Functions from FMI 2.0 could not be found in %s\n", dllPath);
+        printf("warning: Simulator will look for FMI 2.0 RC1 functions names...\n");
+        fmu->getTypesPlatform          = (fmi2GetTypesPlatformTYPE *)      getAdr(&s, h, "fmiGetTypesPlatform");
+        fmu->getVersion                = (fmi2GetVersionTYPE *)            getAdr(&s, h, "fmiGetVersion");
+        fmu->setDebugLogging           = (fmi2SetDebugLoggingTYPE *)       getAdr(&s, h, "fmiSetDebugLogging");
+        fmu->instantiate               = (fmi2InstantiateTYPE *)           getAdr(&s, h, "fmiInstantiate");
+        fmu->freeInstance              = (fmi2FreeInstanceTYPE *)          getAdr(&s, h, "fmiFreeInstance");
+        fmu->setupExperiment           = (fmi2SetupExperimentTYPE *)       getAdr(&s, h, "fmiSetupExperiment");
+        fmu->enterInitializationMode   = (fmi2EnterInitializationModeTYPE *) getAdr(&s, h, "fmiEnterInitializationMode");
+        fmu->exitInitializationMode    = (fmi2ExitInitializationModeTYPE *) getAdr(&s, h, "fmiExitInitializationMode");
+        fmu->terminate                 = (fmi2TerminateTYPE *)             getAdr(&s, h, "fmiTerminate");
+        fmu->reset                     = (fmi2ResetTYPE *)                 getAdr(&s, h, "fmiReset");
+        fmu->getReal                   = (fmi2GetRealTYPE *)               getAdr(&s, h, "fmiGetReal");
+        fmu->getInteger                = (fmi2GetIntegerTYPE *)            getAdr(&s, h, "fmiGetInteger");
+        fmu->getBoolean                = (fmi2GetBooleanTYPE *)            getAdr(&s, h, "fmiGetBoolean");
+        fmu->getString                 = (fmi2GetStringTYPE *)             getAdr(&s, h, "fmiGetString");
+        fmu->setReal                   = (fmi2SetRealTYPE *)               getAdr(&s, h, "fmiSetReal");
+        fmu->setInteger                = (fmi2SetIntegerTYPE *)            getAdr(&s, h, "fmiSetInteger");
+        fmu->setBoolean                = (fmi2SetBooleanTYPE *)            getAdr(&s, h, "fmiSetBoolean");
+        fmu->setString                 = (fmi2SetStringTYPE *)             getAdr(&s, h, "fmiSetString");
+        fmu->getFMUstate               = (fmi2GetFMUstateTYPE *)           getAdr(&s, h, "fmiGetFMUstate");
+        fmu->setFMUstate               = (fmi2SetFMUstateTYPE *)           getAdr(&s, h, "fmiSetFMUstate");
+        fmu->freeFMUstate              = (fmi2FreeFMUstateTYPE *)          getAdr(&s, h, "fmiFreeFMUstate");
+        fmu->serializedFMUstateSize    = (fmi2SerializedFMUstateSizeTYPE *) getAdr(&s, h, "fmiSerializedFMUstateSize");
+        fmu->serializeFMUstate         = (fmi2SerializeFMUstateTYPE *)     getAdr(&s, h, "fmiSerializeFMUstate");
+        fmu->deSerializeFMUstate       = (fmi2DeSerializeFMUstateTYPE *)   getAdr(&s, h, "fmiDeSerializeFMUstate");
+        fmu->getDirectionalDerivative  = (fmi2GetDirectionalDerivativeTYPE *) getAdr(&s, h, "fmiGetDirectionalDerivative");
+    #ifdef FMI_COSIMULATION
+        fmu->setRealInputDerivatives   = (fmi2SetRealInputDerivativesTYPE *) getAdr(&s, h, "fmiSetRealInputDerivatives");
+        fmu->getRealOutputDerivatives  = (fmi2GetRealOutputDerivativesTYPE *) getAdr(&s, h, "fmiGetRealOutputDerivatives");
+        fmu->doStep                    = (fmi2DoStepTYPE *)                getAdr(&s, h, "fmiDoStep");
+        fmu->cancelStep                = (fmi2CancelStepTYPE *)            getAdr(&s, h, "fmiCancelStep");
+        fmu->getStatus                 = (fmi2GetStatusTYPE *)             getAdr(&s, h, "fmiGetStatus");
+        fmu->getRealStatus             = (fmi2GetRealStatusTYPE *)         getAdr(&s, h, "fmiGetRealStatus");
+        fmu->getIntegerStatus          = (fmi2GetIntegerStatusTYPE *)      getAdr(&s, h, "fmiGetIntegerStatus");
+        fmu->getBooleanStatus          = (fmi2GetBooleanStatusTYPE *)      getAdr(&s, h, "fmiGetBooleanStatus");
+        fmu->getStringStatus           = (fmi2GetStringStatusTYPE *)       getAdr(&s, h, "fmiGetStringStatus");
+    #else // FMI2 for Model Exchange
+        fmu->enterEventMode            = (fmi2EnterEventModeTYPE *)        getAdr(&s, h, "fmiEnterEventMode");
+        fmu->newDiscreteStates         = (fmi2NewDiscreteStatesTYPE *)     getAdr(&s, h, "fmiNewDiscreteStates");
+        fmu->enterContinuousTimeMode   = (fmi2EnterContinuousTimeModeTYPE *) getAdr(&s, h, "fmiEnterContinuousTimeMode");
+        fmu->completedIntegratorStep   = (fmi2CompletedIntegratorStepTYPE *) getAdr(&s, h, "fmiCompletedIntegratorStep");
+        fmu->setTime                   = (fmi2SetTimeTYPE *)               getAdr(&s, h, "fmiSetTime");
+        fmu->setContinuousStates       = (fmi2SetContinuousStatesTYPE *)   getAdr(&s, h, "fmiSetContinuousStates");
+        fmu->getDerivatives            = (fmi2GetDerivativesTYPE *)        getAdr(&s, h, "fmiGetDerivatives");
+        fmu->getEventIndicators        = (fmi2GetEventIndicatorsTYPE *)    getAdr(&s, h, "fmiGetEventIndicators");
+        fmu->getContinuousStates       = (fmi2GetContinuousStatesTYPE *)   getAdr(&s, h, "fmiGetContinuousStates");
+        fmu->getNominalsOfContinuousStates = (fmi2GetNominalsOfContinuousStatesTYPE *) getAdr(&s, h, "fmiGetNominalsOfContinuousStates");
+    #endif
+    }
     return s;
 }
 
@@ -269,11 +322,15 @@ static void printModelDescription(ModelDescription* md){
     const char **attributes = getAttributesAsArray(e, &n);
     Component *component;
 
+    if (!attributes) {
+        printf("ModelDescription printing aborted.");
+        return;
+    }
     printf("%s\n", getElementTypeName(e));
     for (i = 0; i < n; i += 2) {
         printf("  %s=%s\n", attributes[i], attributes[i+1]);
     }
-    if (attributes) free(attributes);
+    free((void *)attributes);
 
 #ifdef FMI_COSIMULATION
     component = getCoSimulation(md);
@@ -290,10 +347,15 @@ static void printModelDescription(ModelDescription* md){
 #endif
     printf("%s\n", getElementTypeName((Element *)component));
     attributes = getAttributesAsArray((Element *)component, &n);
+    if (!attributes) {
+        printf("ModelDescription printing aborted.");
+        return;
+    }
     for (i = 0; i < n; i += 2) {
         printf("  %s=%s\n", attributes[i], attributes[i+1]);
     }
-    if (attributes) free(attributes);
+
+    free((void *)attributes);
 }
 
 void loadFMU(const char* fmuFileName) {
@@ -325,21 +387,22 @@ void loadFMU(const char* fmuFileName) {
 #endif
     // load the FMU dll
     dllPath = calloc(sizeof(char), strlen(tmpPath) + strlen(DLL_DIR)
-            + strlen(modelId) +  strlen(DLL_SUFFIX) + 1);
-    sprintf(dllPath,"%s%s%s%s", tmpPath, DLL_DIR, modelId, DLL_SUFFIX);
+        + strlen(modelId) +  strlen(".dll") + 1);
+    sprintf(dllPath, "%s%s%s.dll", tmpPath, DLL_DIR, modelId);
     if (!loadDll(dllPath, &fmu)) {
-        free(dllPath);
-        // try the alternative directory and suffix
-        dllPath = calloc(sizeof(char), strlen(tmpPath) + strlen(DLL_DIR2) 
-                + strlen(modelId) +  strlen(DLL_SUFFIX2) + 1);
-        sprintf(dllPath,"%s%s%s%s", tmpPath, DLL_DIR2, modelId, DLL_SUFFIX2);
-        if (!loadDll(dllPath, &fmu)) exit(EXIT_FAILURE); 
+        exit(EXIT_FAILURE);
     }
-
-    if (!loadDll(dllPath, &fmu)) exit(EXIT_FAILURE);
     free(dllPath);
     free(fmuPath);
     free(tmpPath);
+}
+
+void deleteUnzippedFiles() {
+    const char *fmuTempPath = getTmpPath();
+    char *cmd = (char *)calloc(15 + strlen(fmuTempPath), sizeof(char));
+    sprintf(cmd, "rmdir /S /Q %s", fmuTempPath);
+    system(cmd);
+    free(cmd);
 }
 
 static void doubleToCommaString(char* buffer, double r){
@@ -353,13 +416,13 @@ static void doubleToCommaString(char* buffer, double r){
 // if separator is ',', columns are separated by ',' and '.' is used for floating-point numbers.
 // otherwise, the given separator (e.g. ';' or '\t') is to separate columns, and ',' is used 
 // as decimal dot in floating-point numbers.
-void outputRow(FMU *fmu, fmiComponent c, double time, FILE* file, char separator, boolean header) {
+void outputRow(FMU *fmu, fmi2Component c, double time, FILE* file, char separator, fmi2Boolean header) {
     int k;
-    fmiReal r;
-    fmiInteger i;
-    fmiBoolean b;
-    fmiString s;
-    fmiValueReference vr;
+    fmi2Real r;
+    fmi2Integer i;
+    fmi2Boolean b;
+    fmi2String s;
+    fmi2ValueReference vr;
     int n = getScalarVariableSize(fmu->modelDescription);
     char buffer[32];
 
@@ -378,12 +441,12 @@ void outputRow(FMU *fmu, fmiComponent c, double time, FILE* file, char separator
 
     // print all other columns
     for (k = 0; k < n; k++) {
-        ScalarVariable* sv = getScalarVariable(fmu->modelDescription, k);
+        ScalarVariable *sv = getScalarVariable(fmu->modelDescription, k);
         if (header) {
             // output names only
             if (separator == ',') {
                 // treat array element, e.g. print a[1, 2] as a[1.2]
-                const char* s = getAttributeValue((Element *)sv, att_name);
+                const char *s = getAttributeValue((Element *)sv, att_name);
                 fprintf(file, "%c", separator);
                 while (*s) {
                     if (*s != ' ') {
@@ -431,15 +494,15 @@ void outputRow(FMU *fmu, fmiComponent c, double time, FILE* file, char separator
     fprintf(file, "\n");
 }
 
-static const char* fmiStatusToString(fmiStatus status){
+static const char* fmi2StatusToString(fmi2Status status){
     switch (status){
-        case fmiOK:      return "ok";
-        case fmiWarning: return "warning";
-        case fmiDiscard: return "discard";
-        case fmiError:   return "error";
-        case fmiFatal:   return "fatal";
+        case fmi2OK:      return "ok";
+        case fmi2Warning: return "warning";
+        case fmi2Discard: return "discard";
+        case fmi2Error:   return "error";
+        case fmi2Fatal:   return "fatal";
     #ifdef FMI_COSIMULATION
-        case fmiPending: return "fmiPending";
+        case fmi2Pending: return "fmi2Pending";
     #endif
         default:         return "?";
     }
@@ -447,7 +510,7 @@ static const char* fmiStatusToString(fmiStatus status){
 
 // search a fmu for the given variable, matching the type specified.
 // return NULL if not found
-static ScalarVariable* getSV(FMU* fmu, char type, fmiValueReference vr) {
+static ScalarVariable* getSV(FMU* fmu, char type, fmi2ValueReference vr) {
     int i;
     int n = getScalarVariableSize(fmu->modelDescription);
     Elm tp;
@@ -497,7 +560,7 @@ static void replaceRefsInMessage(const char* msg, char* buffer, int nBuffer, FMU
 
             } else {
                 char type = msg[i + 1]; // one of ribs
-                fmiValueReference vr;
+                fmi2ValueReference vr;
                 int nvr = sscanf(msg + i + 2, "%u", &vr);
                 if (nvr == 1) {
                     // vr of type detected, e.g. #r12#
@@ -521,8 +584,8 @@ static void replaceRefsInMessage(const char* msg, char* buffer, int nBuffer, FMU
 }
 
 #define MAX_MSG_SIZE 1000
-void fmuLogger(void *componentEnvironment, fmiString instanceName, fmiStatus status,
-               fmiString category, fmiString message, ...) {
+void fmuLogger(void *componentEnvironment, fmi2String instanceName, fmi2Status status,
+               fmi2String category, fmi2String message, ...) {
     char msg[MAX_MSG_SIZE];
     char* copy;
     va_list argp;
@@ -530,6 +593,7 @@ void fmuLogger(void *componentEnvironment, fmiString instanceName, fmiStatus sta
     // replace C format strings
     va_start(argp, message);
     vsprintf(msg, message, argp);
+    va_end(argp);
 
     // replace e.g. ## and #r12#
     copy = strdup(msg);
@@ -539,8 +603,7 @@ void fmuLogger(void *componentEnvironment, fmiString instanceName, fmiStatus sta
     // print the final message
     if (!instanceName) instanceName = "?";
     if (!category) category = "?";
-    printf("%s %s (%s): %s\n", fmiStatusToString(status), instanceName, category, msg);
-    va_end(argp);
+    printf("%s %s (%s): %s\n", fmi2StatusToString(status), instanceName, category, msg);
 }
 
 int error(const char* message){
@@ -548,7 +611,7 @@ int error(const char* message){
     return 0;
 }
 
-void parseArguments(int argc, char *argv[], char **fmuFileName, double *tEnd, double *h,
+void parseArguments(int argc, char *argv[], const char **fmuFileName, double *tEnd, double *h,
                     int *loggingOn, char *csv_separator, int *nCategories, char **logCategories[]) {
     // parse command line arguments
     if (argc > 1) {

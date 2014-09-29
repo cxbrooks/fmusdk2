@@ -12,16 +12,17 @@
 #ifndef XML_PARSER_EXCEPTION_H
 #define XML_PARSER_EXCEPTION_H
 
-#include "exception"
+#include <exception>
 #include <stdarg.h>
 
 static char* strallocprintf(const char *format, va_list argp);
 
 // message passed in constructor is freed in destructor.
 class XmlParserException : public std::exception {
-public:
+ public:
     char *message;
-public:
+
+ public:
     XmlParserException(const char *format, ...) {
     va_list argp;
     va_start(argp, format);
@@ -29,7 +30,7 @@ public:
     va_end(argp);
     }
     ~XmlParserException() throw() {
-        if (message) free(message);
+        if (message) delete[]message;
     }
 
     virtual const char *what() const throw() {
@@ -49,9 +50,9 @@ static char *strallocprintf(const char *format, va_list argp) {
     va_end(argcopy); 
 #endif
 
-    result = (char *)malloc((n + 1) * sizeof(char));
+    result = new char[n + 1];
     vsprintf(result, format, argp);
     return result;
 }
 
-#endif // XML_PARSER_EXCEPTION_H
+#endif  // XML_PARSER_EXCEPTION_H

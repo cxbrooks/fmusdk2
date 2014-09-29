@@ -40,10 +40,9 @@ if not exist temp mkdir temp
 pushd temp
 if exist *.dll del /Q *.dll
 
-rem /wd4090 disables warnings about different 'const' qualifiers
 if %1==cs (set FMI_DIR=co_simulation) else set FMI_DIR=model_exchange
 if %1==cs (set DEF=/DFMI_COSIMULATION) else set DEF=
-cl /LD /wd4090 /nologo %DEF% ..\%2\%2.c /I ..\. /I ..\..\%FMI_DIR%\include
+cl /LD /nologo %DEF% ..\%2\%2.c /I ..\. /I ..\..\%FMI_DIR%\include
 if not exist %2.dll goto compileError
 
 rem create FMU dir structure with root 'fmu'
