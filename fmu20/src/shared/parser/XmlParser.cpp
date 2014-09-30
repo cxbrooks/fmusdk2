@@ -16,7 +16,7 @@
 #include <vector>
 #include "XmlElement.h"
 #include "XmlParserException.h"
-
+#include <cstring> // strdup()
 
 #ifdef STANDALONE_XML_PARSER
 #define logThis(n, ...) printf(__VA_ARGS__); printf("\n")

@@ -410,6 +410,7 @@ void deleteUnzippedFiles() {
     sprintf(cmd, "rm -rf %s", fmuTempPath);
 #endif
     system(cmd);
+    free(fmuTempPath);
     free(cmd);
 }
 

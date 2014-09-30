@@ -18,6 +18,9 @@
 #include <vector>
 #include "XmlParserException.h"
 
+#include <cstring> // strcmp()
+
+
 #ifdef STANDALONE_XML_PARSER
 #define logThis(n, ...) printf(__VA_ARGS__); printf("\n")
 #else
