@@ -1,4 +1,5 @@
 fmusdk2
 =======
 
-Fork of FMUSDK2.0.1 from QTronic (http://www.qtronic.de/doc/fmusdk.zip)
+Port of FMUSDK2.0.2 from QTronic (http://www.qtronic.de/doc/fmusdk.zip) to Mac OS X and Linux.
+
