@@ -11,6 +11,8 @@ distclean: clean
 	rm -f fmu20/bin/fmusim_cs* fmu20/bin/fmusim_me*
 	rm -rf fmu10/fmu
 	rm -rf fmu20/fmu
+	rm -rf fmuTmp* 
+	rm -f *.csv
 	find . -name "*~" -exec rm {} \;
 	find . -name "#*~" -exec rm {} \;
 

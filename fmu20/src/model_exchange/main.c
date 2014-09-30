@@ -27,6 +27,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h> //strerror()
 #include "fmi2.h"
 #include "sim_support.h"
 

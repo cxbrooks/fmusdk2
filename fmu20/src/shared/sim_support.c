@@ -387,10 +387,14 @@ void loadFMU(const char* fmuFileName) {
 #endif
     // load the FMU dll
     dllPath = calloc(sizeof(char), strlen(tmpPath) + strlen(DLL_DIR)
-        + strlen(modelId) +  strlen(".dll") + 1);
-    sprintf(dllPath, "%s%s%s.dll", tmpPath, DLL_DIR, modelId);
+            + strlen(modelId) +  strlen(DLL_SUFFIX) + 1);
+    sprintf(dllPath,"%s%s%s%s", tmpPath, DLL_DIR, modelId, DLL_SUFFIX);
     if (!loadDll(dllPath, &fmu)) {
-        exit(EXIT_FAILURE);
+        // try the alternative directory and suffix
+        dllPath = calloc(sizeof(char), strlen(tmpPath) + strlen(DLL_DIR2) 
+                + strlen(modelId) +  strlen(DLL_SUFFIX2) + 1);
+        sprintf(dllPath,"%s%s%s%s", tmpPath, DLL_DIR2, modelId, DLL_SUFFIX2);
+        if (!loadDll(dllPath, &fmu)) exit(EXIT_FAILURE); 
     }
     free(dllPath);
     free(fmuPath);
@@ -400,7 +404,11 @@ void loadFMU(const char* fmuFileName) {
 void deleteUnzippedFiles() {
     const char *fmuTempPath = getTmpPath();
     char *cmd = (char *)calloc(15 + strlen(fmuTempPath), sizeof(char));
+#if WINDOWS
     sprintf(cmd, "rmdir /S /Q %s", fmuTempPath);
+#else
+    sprintf(cmd, "rm -rf %s", fmuTempPath);
+#endif
     system(cmd);
     free(cmd);
 }
@@ -612,7 +620,7 @@ int error(const char* message){
 }
 
 void parseArguments(int argc, char *argv[], const char **fmuFileName, double *tEnd, double *h,
-                    int *loggingOn, char *csv_separator, int *nCategories, const fmi2String *logCategories[]) {
+        int *loggingOn, char *csv_separator, int *nCategories, /*const*/ fmi2String *logCategories[]) {
     // parse command line arguments
     if (argc > 1) {
         *fmuFileName = argv[1];
@@ -653,7 +661,7 @@ void parseArguments(int argc, char *argv[], const char **fmuFileName, double *tE
     if (argc > 6) {
         int i;
         *nCategories = argc - 6;
-        *logCategories = (char **)calloc(sizeof(char *), *nCategories);
+        *logCategories = (/*const*/ fmi2String *)calloc(sizeof(char *), *nCategories);
         for (i = 0; i < *nCategories; i++) {
             (*logCategories)[i] = argv[i + 6];
         }

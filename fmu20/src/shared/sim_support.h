@@ -12,11 +12,45 @@
 #define XML_FILE  "modelDescription.xml"
 #define RESULT_FILE "result.csv"
 #define BUFSIZE 4096
+#if WINDOWS
 #ifdef _WIN64
 #define DLL_DIR   "binaries\\win64\\"
+#define DLL_DIR2   "binaries\\win64\\"
 #else
 #define DLL_DIR   "binaries\\win32\\"
+#define DLL_DIR2   "binaries\\win32\\"
 #endif
+
+#define DLL_SUFFIX ".dll"
+#define DLL_SUFFIX2 ".dll"
+
+#else
+#if __APPLE__
+
+// Use these for platforms other than OpenModelica
+#define DLL_DIR   "binaries/darwin64/"
+#define DLL_SUFFIX ".dylib"
+
+// Use these for OpenModelica 1.8.1
+#define DLL_DIR2   "binaries/darwin-x86_64/"
+#define DLL_SUFFIX2 ".so"
+
+
+#else /*__APPLE__*/
+// Linux
+#ifdef __x86_64
+#define DLL_DIR   "binaries/linux64/"
+#define DLL_DIR2   "binaries/linux32/"
+#else
+// It may be necessary to compile with -m32, see ../Makefile
+#define DLL_DIR   "binaries/linux32/"
+#define DLL_DIR2   "binaries/linux64/"
+#endif /*__x86_64*/
+#define DLL_SUFFIX ".so"
+#define DLL_SUFFIX2 ".so"
+#endif /*__APPLE__*/
+#endif /*WINDOWS*/
+
 #define RESOURCES_DIR "resources\\"
 
 // return codes of the 7z command line tool
@@ -30,7 +64,7 @@
 void fmuLogger(fmi2Component c, fmi2String instanceName, fmi2Status status, fmi2String category, fmi2String message, ...);
 int unzip(const char *zipPath, const char *outPath);
 void parseArguments(int argc, char *argv[], const char **fmuFileName, double *tEnd, double *h,
-                    int *loggingOn, char *csv_separator, int *nCategories, const fmi2String *logCategories[]);
+        int *loggingOn, char *csv_separator, int *nCategories, /*const*/ fmi2String *logCategories[]);
 void loadFMU(const char *fmuFileName);
 void deleteUnzippedFiles();
 void outputRow(FMU *fmu, fmi2Component c, double time, FILE* file, char separator, fmi2Boolean header);

@@ -331,7 +331,11 @@ void loadFMU(const char* fmuFileName) {
 void deleteUnzippedFiles() {
     const char *fmuTempPath = getTmpPath();
     char *cmd = (char *)calloc(15 + strlen(fmuTempPath), sizeof(char));
+#if WINDOWS
     sprintf(cmd, "rmdir /S /Q %s", fmuTempPath);
+#else
+    sprintf(cmd, "rm -rf %s", fmuTempPath);
+#endif
     system(cmd);
     free(cmd);
 }

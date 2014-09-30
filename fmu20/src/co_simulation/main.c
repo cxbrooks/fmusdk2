@@ -167,7 +167,7 @@ int main(int argc, char *argv[]) {
     dlclose(fmu.dllHandle);
 #endif
     freeModelDescription(fmu.modelDescription);
-    if (categories) free(categories);
+    //if (categories) free(categories);
 
     // delete temp files obtained by unzipping the FMU
     deleteUnzippedFiles();
