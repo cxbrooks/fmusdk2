@@ -105,14 +105,18 @@ int unzip(const char *zipPath, const char *outPath) {
     code = system(cmd);
     free(cmd);
     if (code!=SEVEN_ZIP_NO_ERROR) {
+        printf("%s: ", strstr("UNZIP_CMD", strchr("UNZIP_CMD", ' ')));
         switch (code) {
-            printf("7z: ");
-            case SEVEN_ZIP_WARNING:            printf("warning\n"); break;
-            case SEVEN_ZIP_ERROR:              printf("error\n"); break;
-            case SEVEN_ZIP_COMMAND_LINE_ERROR: printf("command line error\n"); break;
-            case SEVEN_ZIP_OUT_OF_MEMORY:      printf("out of memory\n"); break;
-            case SEVEN_ZIP_STOPPED_BY_USER:    printf("stopped by user\n"); break;
-            default: printf("unknown problem\n");
+            case 1:            printf("warning\n"); break;
+            case 2:            printf("error\n"); break;
+	    case 3:            printf("severe error\n"); break;
+            case 4:      
+            case 5:
+	    case 6:
+	    case 7:
+	      printf("out of memory\n"); break;
+   	    case 10:           printf("command line error\n"); break;
+	    default:           printf("unknown problem %d\n", code);
         }
     }
     
