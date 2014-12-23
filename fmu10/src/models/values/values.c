@@ -41,6 +41,8 @@ const char* month[] = {
     "august","sept","october","november","december"
 };
 
+static fmiStatus setString(fmiComponent comp, fmiValueReference vr, fmiString value);
+
 // called by fmiInstantiateModel
 // Set values for all variables that define a start value
 // Settings used unless changed by fmiSetX before fmiInitialize

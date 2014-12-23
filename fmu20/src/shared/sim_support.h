@@ -4,11 +4,17 @@
  * Copyright QTronic GmbH. All rights reserved.
  * -------------------------------------------------------------------------*/
 
+#if WINDOWS
 // Used 7z options, version 4.57:
 // -x   Extracts files from an archive with their full paths in the current dir, or in an output dir if specified
 // -aoa Overwrite All existing files without prompt
 // -o   Specifies a destination directory where files are to be extracted
 #define UNZIP_CMD "7z x -aoa -o"
+#else
+// -o   Overwrite existing files without prompting
+// -d   The directory in which to write files.
+#define UNZIP_CMD "unzip -o -d "
+#endif
 #define XML_FILE  "modelDescription.xml"
 #define RESULT_FILE "result.csv"
 #define BUFSIZE 4096
