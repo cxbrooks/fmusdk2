@@ -394,6 +394,7 @@ void loadFMU(const char* fmuFileName) {
             + strlen(modelId) +  strlen(DLL_SUFFIX) + 1);
     sprintf(dllPath,"%s%s%s%s", tmpPath, DLL_DIR, modelId, DLL_SUFFIX);
     if (!loadDll(dllPath, &fmu)) {
+        free(dllPath);
         // try the alternative directory and suffix
         dllPath = calloc(sizeof(char), strlen(tmpPath) + strlen(DLL_DIR2) 
                 + strlen(modelId) +  strlen(DLL_SUFFIX2) + 1);
