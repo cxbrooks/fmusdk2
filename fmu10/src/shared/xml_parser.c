@@ -358,7 +358,11 @@ static int checkElementType(void* element, Elm e) {
 // If e==elm_BAD_DEFINED, the type check is omitted
 static int checkPeek(Elm e) {
     if (stackIsEmpty(stack)) {
-        logThis(ERROR_FATAL, "Illegal document structure, expected %s", elmNames[e]);
+        if (e == elm_BAD_DEFINED) {
+            logThis(ERROR_FATAL, "Illegal document structure, got undefined value?  Perhaps an attribute needs to be added to the Elm typedef in xml_parser.h?");
+        } else {
+            logThis(ERROR_FATAL, "Illegal document structure, expected %s", elmNames[e]);
+        }
         XML_StopParser(parser, XML_FALSE);
         return 0; // error
     }
@@ -570,6 +574,7 @@ static void XMLCALL endElement(void *context, const char *elm) {
                  // replace Implementation element
                  void* cs = checkPop(elm_BAD_DEFINED);
                  void* im = checkPop(elm_Implementation);
+                 if (!cs || !im) return;
                  stackPush(stack, cs);
                  //printf("im=%x att=%x\n",im,((Element*)im)->attributes);
                  free(im);
