@@ -269,10 +269,12 @@ void fmi2FreeInstance(fmi2Component c) {
     if (comp->i) comp->functions->freeMemory(comp->i);
     if (comp->b) comp->functions->freeMemory(comp->b);
     if (comp->s) {
+#if NUMBER_OF_STRINGS>0
         int i;
         for (i = 0; i < NUMBER_OF_STRINGS; i++){
             if (comp->s[i]) comp->functions->freeMemory((void *)comp->s[i]);
         }
+#endif
         comp->functions->freeMemory((void *)comp->s);
     }
     if (comp->isPositive) comp->functions->freeMemory(comp->isPositive);
