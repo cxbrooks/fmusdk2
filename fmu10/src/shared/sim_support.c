@@ -104,7 +104,7 @@ int unzip(const char *zipPath, const char *outPath) {
     code = system(cmd);
     free(cmd);
     if (code!=SEVEN_ZIP_NO_ERROR) {
-        printf("%s: ", strstr("UNZIP_CMD", strchr("UNZIP_CMD", ' ')));
+        printf("%s: ", UNZIP_CMD);
         switch (code) {
             case 1:            printf("warning\n"); break;
             case 2:            printf("error\n"); break;
