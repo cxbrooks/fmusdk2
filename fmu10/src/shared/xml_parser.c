@@ -517,6 +517,7 @@ static void XMLCALL endElement(void *context, const char *elm) {
                  ListElement* child;
 
                  child = (ListElement *)checkPop(elm_BAD_DEFINED);
+                 if (!child) return;
                  if (child->type == elm_CoSimulation_StandAlone || child->type == elm_CoSimulation_Tool) {
                      cs = (CoSimulation*)child;
                      child = (ListElement *)checkPop(elm_BAD_DEFINED);
