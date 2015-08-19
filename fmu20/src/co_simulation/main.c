@@ -36,7 +36,7 @@ FMU fmu; // the fmu to simulate
 
 // simulate the given FMU from tStart = 0 to tEnd.
 static int simulate(FMU* fmu, double tEnd, double h, fmi2Boolean loggingOn, char separator,
-                    int nCategories, const fmi2String *categories) {
+                    int nCategories, const fmi2String categories[]) {
     double time;
     double tStart = 0;                      // start time
     const char *guid;                       // global unique id of the fmu
@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
     double h=0.1;
     int loggingOn = 0;
     char csv_separator = ',';
-    const fmi2String *categories = NULL;
+    fmi2String *categories = NULL;
     int nCategories = 0;
 
     parseArguments(argc, argv, &fmuFileName, &tEnd, &h, &loggingOn, &csv_separator, &nCategories, &categories);
