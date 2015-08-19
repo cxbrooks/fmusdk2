@@ -38,3 +38,8 @@ fmu20/src/fmusim_me
 fmu20/src/fmusim_me.dSYM
 fmu20/src/models/*/fmu/
 
+# temp folders
+/fmuTmp*
+
+# simulation results
+/result_*

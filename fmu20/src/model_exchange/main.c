@@ -38,7 +38,7 @@ FMU fmu; // the fmu to simulate
 // state events are checked and fired only at the end of an Euler step. 
 // the simulator may therefore miss state events and fires state events typically too late.
 static int simulate(FMU* fmu, double tEnd, double h, fmi2Boolean loggingOn, char separator,
-                    int nCategories, char **categories) {
+                    int nCategories, const fmi2String categories[]) {
     int i;
     double dt, tPre;
     fmi2Boolean timeEvent, stateEvent, stepEvent, terminateSimulation;
@@ -259,7 +259,7 @@ int main(int argc, char *argv[]) {
     double h=0.1;
     int loggingOn = 0;
     char csv_separator = ',';
-    char **categories = NULL;
+    fmi2String *categories = NULL;
     int nCategories = 0;
 
     parseArguments(argc, argv, &fmuFileName, &tEnd, &h, &loggingOn, &csv_separator, &nCategories, &categories);
