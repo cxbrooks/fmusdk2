@@ -143,7 +143,7 @@ The content of the .c file should follow the existing FMU examples, see the comm
 For FMI 1.0, add also file modelDescription.xml.
 The XML file must not contain the <code>&lt;implementation&gt;</code>
 element and the closing <code>&lt;fmiModelDescription&gt;</code> tag, because this is added automatically during build. 
-For FMI 2.0, add file modelDescription_cs.xml and modelDescription_cs.xml.
+For FMI 2.0, add file modelDescription_cs.xml and modelDescription_me.xml.
 When done with editing xy.c and the xml file (or files), open a command shell in FMUSDK_HOME\fmu10\src\models 
 or in FMUSDK_HOME\fmu20\src\models and run the 
 command <code>build_fmu me xy</code> to build an FMU for model-exchange, or
@@ -157,7 +157,7 @@ model exchange and co-simulation 1.0. Notation: UML class diagram.
 <img src="fmu10-xml-schema.png">
 <br/>
 For the case of FMU 2.0, see the corresponding overview figure in the
-<a href="https://svn.modelica.org/fmi/branches/public/specifications/FMI_for_ModelExchange_and_CoSimulation_v2.0.pdf"
+<a href="https://svn.modelica.org/fmi/branches/public/specifications/v2.0/FMI_for_ModelExchange_and_CoSimulation_v2.0.pdf"
 target="_blank">FMI specification 2.0</a>.
 <hr />
 
